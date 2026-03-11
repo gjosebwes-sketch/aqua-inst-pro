@@ -1,0 +1,2471 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AQUA-INST PRO · Toolkit Instrumentación Agua</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   THEME TOKENS
+════════════════════════════════════════ */
+[data-theme="dark"] {
+  --bg:          #080c12;
+  --surface:     #0d1520;
+  --panel:       #101b28;
+  --panel2:      #142030;
+  --border:      #1c2e40;
+  --border2:     #243d54;
+  --text:        #c0d4e4;
+  --dim:         #4a6878;
+  --bright:      #e8f4ff;
+  --input-bg:    #060c14;
+  --code-bg:     #060a10;
+  --shadow:      rgba(0,0,0,0.6);
+  --nav-bg:      #0a1520;
+  --overlay:     rgba(8,12,18,0.92);
+}
+[data-theme="light"] {
+  --bg:          #eef3f8;
+  --surface:     #ffffff;
+  --panel:       #ffffff;
+  --panel2:      #f4f8fc;
+  --border:      #ccdaec;
+  --border2:     #aac0d8;
+  --text:        #203040;
+  --dim:         #608090;
+  --bright:      #0a1824;
+  --input-bg:    #f7fafd;
+  --code-bg:     #edf3f8;
+  --shadow:      rgba(0,0,0,0.08);
+  --nav-bg:      #f0f6fc;
+  --overlay:     rgba(238,243,248,0.95);
+}
+:root {
+  --accent:   #00c8f0;
+  --accent2:  #0090b8;
+  --c-flow:   #00b4d8;
+  --c-turb:   #7b61ff;
+  --c-ph:     #00c896;
+  --c-temp:   #ff6b35;
+  --c-cond:   #f7c325;
+  --c-press:  #e040fb;
+  --c-do:     #40e0c8;
+  --ok:       #00e676;
+  --warn:     #ffc107;
+  --alarm:    #ff3d71;
+  --nav-w:    240px;
+  --hdr-h:    56px;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background .3s, color .3s;
+}
+
+/* ════════════════════════════════════════
+   SIDEBAR NAV
+════════════════════════════════════════ */
+.sidebar {
+  position: fixed; top: 0; left: 0;
+  width: var(--nav-w); height: 100vh;
+  background: var(--nav-bg);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  z-index: 100; overflow-y: auto;
+  transition: background .3s, transform .3s;
+}
+.sidebar-logo {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.logo-mark {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.45rem; font-weight: 900;
+  letter-spacing: 0.06em; color: var(--accent);
+  line-height: 1;
+}
+.logo-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem; color: var(--dim);
+  letter-spacing: 0.18em; margin-top: 3px;
+}
+.nav-section {
+  padding: 10px 12px 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem; color: var(--dim);
+  letter-spacing: 0.2em; text-transform: uppercase;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 16px; cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem; font-weight: 500;
+  letter-spacing: 0.04em; color: var(--dim);
+  border-left: 3px solid transparent;
+  transition: all .2s; user-select: none;
+}
+.nav-item:hover { color: var(--text); background: var(--panel2); }
+.nav-item.active {
+  color: var(--accent); border-left-color: var(--accent);
+  background: rgba(0,200,240,0.07); font-weight: 700;
+}
+.nav-icon { font-size: 1.05rem; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto; font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem; padding: 2px 6px; border-radius: 10px;
+  background: rgba(0,200,240,0.15); color: var(--accent);
+  letter-spacing: 0.08em;
+}
+.sidebar-footer {
+  margin-top: auto; padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.6rem; color: var(--dim); line-height: 1.7;
+}
+
+/* ════════════════════════════════════════
+   TOP HEADER
+════════════════════════════════════════ */
+.topbar {
+  position: fixed; top: 0; left: var(--nav-w); right: 0;
+  height: var(--hdr-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 24px; gap: 16px; z-index: 90;
+  transition: background .3s;
+}
+.topbar-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.15rem; font-weight: 700;
+  letter-spacing: 0.06em; color: var(--bright);
+}
+.topbar-breadcrumb {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem; color: var(--dim);
+  letter-spacing: 0.1em;
+}
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.theme-btn {
+  width: 38px; height: 22px; border-radius: 11px;
+  background: var(--border2); border: none; cursor: pointer;
+  position: relative; transition: background .3s;
+}
+.theme-btn::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--accent); transition: transform .3s;
+}
+[data-theme="light"] .theme-btn::after { transform: translateX(16px); background: #f7c325; }
+.theme-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem; color: var(--dim); letter-spacing: 0.1em;
+}
+.sector-pill {
+  font-family: 'Share Tech Mono', monospace; font-size: 0.6rem;
+  padding: 3px 10px; border-radius: 12px; letter-spacing: 0.08em;
+  border: 1px solid var(--accent2); color: var(--accent);
+  background: rgba(0,200,240,0.08);
+}
+/* hamburger for mobile */
+.menu-btn {
+  display: none; background: none; border: none;
+  color: var(--text); font-size: 1.4rem; cursor: pointer;
+}
+
+/* ════════════════════════════════════════
+   MAIN CONTENT
+════════════════════════════════════════ */
+.main {
+  margin-left: var(--nav-w);
+  padding-top: var(--hdr-h);
+  min-height: 100vh;
+}
+.page { display: none; padding: 24px; animation: fadeUp .3s ease; }
+.page.active { display: block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+
+/* ════════════════════════════════════════
+   SHARED COMPONENTS
+════════════════════════════════════════ */
+.page-header {
+  display: flex; align-items: flex-start; gap: 16px;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.page-header-icon {
+  font-size: 2.5rem; line-height: 1; flex-shrink: 0;
+}
+.page-header-text h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.8rem; font-weight: 900;
+  letter-spacing: 0.06em; color: var(--bright);
+  text-transform: uppercase; line-height: 1;
+}
+.page-header-text p {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem; color: var(--dim);
+  letter-spacing: 0.15em; margin-top: 5px;
+}
+.page-header-text .sector-tags { display: flex; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+.stag {
+  font-family: 'Share Tech Mono', monospace; font-size: 0.58rem;
+  padding: 2px 8px; border-radius: 3px; letter-spacing: 0.08em;
+  border: 1px solid;
+}
+.stag-edar  { border-color: var(--c-ph);   color: var(--c-ph);   background: rgba(0,200,150,0.08); }
+.stag-etap  { border-color: var(--c-flow); color: var(--c-flow); background: rgba(0,180,216,0.08); }
+.stag-ind   { border-color: var(--c-cond); color: var(--c-cond); background: rgba(247,195,37,0.08); }
+.stag-og    { border-color: var(--c-temp); color: var(--c-temp); background: rgba(255,107,53,0.08); }
+
+.card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px;
+  box-shadow: 0 2px 12px var(--shadow);
+  transition: background .3s, border-color .3s;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--dim);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.card-title::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; display: block; flex-shrink: 0;
+}
+label {
+  display: block; font-size: 0.78rem; font-weight: 600;
+  color: var(--dim); margin-top: 12px; margin-bottom: 4px;
+  letter-spacing: 0.05em; text-transform: uppercase;
+}
+input, select {
+  width: 100%; padding: 9px 12px;
+  border-radius: 6px; border: 1px solid var(--border2);
+  background: var(--input-bg); color: var(--bright);
+  font-family: 'Share Tech Mono', monospace; font-size: 0.88rem;
+  transition: border-color .2s, box-shadow .2s;
+}
+input:focus, select:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0,200,240,0.2);
+}
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 20px; border-radius: 7px; border: none; cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1rem;
+  font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  transition: all .2s; position: relative; overflow: hidden;
+}
+.btn::after { content:''; position:absolute; inset:0; background:rgba(255,255,255,0.1); opacity:0; transition:opacity .2s; }
+.btn:hover::after { opacity:1; }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--shadow); }
+.btn-primary { background: var(--accent); color: #000; width: 100%; margin-top: 14px; padding: 13px; font-size: 1.05rem; }
+.btn-outline { background: transparent; border: 1px solid var(--border2); color: var(--text); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sm { padding: 6px 14px; font-size: 0.82rem; margin-top: 0; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.grid-form { display: grid; grid-template-columns: 300px 1fr; gap: 16px; }
+
+.result-big {
+  text-align: center; padding: 18px;
+  background: var(--input-bg); border-radius: 8px; border: 1px solid var(--border);
+}
+.result-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 3rem; line-height: 1; transition: color .4s;
+}
+.result-unit { font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; color: var(--dim); margin-top: 4px; }
+.result-ma   { font-family: 'Share Tech Mono', monospace; font-size: 1rem; margin-top: 8px; }
+
+.status-box {
+  font-family: 'Share Tech Mono', monospace; font-size: 0.85rem;
+  padding: 10px 14px; border-radius: 6px;
+  background: var(--input-bg); border: 1px solid var(--border);
+  min-height: 40px; display: flex; align-items: center;
+}
+.s-ok    { color: var(--ok); }
+.s-warn  { color: var(--warn); }
+.s-alarm { color: var(--alarm); }
+
+.span-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.span-num { font-family: 'Share Tech Mono', monospace; font-size: 1.2rem; color: var(--bright); min-width: 60px; }
+.bar-bg { flex: 1; height: 8px; border-radius: 4px; background: var(--border); overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width .5s cubic-bezier(.4,0,.2,1); }
+
+.formula-box {
+  background: var(--code-bg); border: 1px dashed var(--border2);
+  border-radius: 6px; padding: 12px 14px;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.73rem;
+  color: #4a9aba; line-height: 1.9; white-space: pre-wrap; word-break: break-all;
+}
+[data-theme="light"] .formula-box { color: #1a6080; }
+
+.r-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.r-cell {
+  background: var(--input-bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 9px 12px;
+}
+.r-cell .rl { font-size: 0.62rem; font-family: 'Share Tech Mono', monospace; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; }
+.r-cell .rv { font-family: 'Share Tech Mono', monospace; font-size: 1.1rem; color: var(--bright); margin-top: 2px; font-weight: 700; }
+.r-cell .ru { font-size: 0.68rem; color: var(--dim); }
+
+.norm-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.norm-table th {
+  font-family: 'Share Tech Mono', monospace; font-size: 0.62rem;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim);
+  padding: 7px 10px; border-bottom: 1px solid var(--border2); text-align: left;
+}
+.norm-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); }
+.norm-table tr:last-child td { border-bottom: none; }
+.norm-table tr:hover td { background: var(--panel2); }
+.norm-table .hl { font-weight: 700; color: var(--bright); }
+.ntag {
+  display: inline-block; font-size: 0.58rem; padding: 1px 6px;
+  border-radius: 3px; font-family: 'Share Tech Mono', monospace; letter-spacing: 0.05em;
+}
+.ntag-edar { background: rgba(0,200,150,0.15); color: var(--c-ph); border: 1px solid var(--c-ph); }
+.ntag-etap { background: rgba(0,180,216,0.15); color: var(--c-flow); border: 1px solid var(--c-flow); }
+.ntag-ind  { background: rgba(247,195,37,0.15); color: var(--c-cond); border: 1px solid var(--c-cond); }
+.ntag-ok   { background: rgba(0,230,118,0.15); color: var(--ok); border: 1px solid var(--ok); }
+.ntag-warn { background: rgba(255,193,7,0.15); color: var(--warn); border: 1px solid var(--warn); }
+.ntag-alarm{ background: rgba(255,61,113,0.15); color: var(--alarm); border: 1px solid var(--alarm); }
+
+.presets { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.pill {
+  padding: 4px 10px; border-radius: 20px; cursor: pointer;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.68rem;
+  border: 1px solid var(--border2); background: transparent; color: var(--dim);
+  transition: all .2s; width: auto;
+}
+.pill:hover, .pill.active { color: var(--bright); }
+
+canvas.linechart {
+  width: 100%; border-radius: 6px;
+  background: var(--input-bg); border: 1px solid var(--border); display: block;
+}
+
+/* Tabs inside modules */
+.mod-tabs { display: flex; gap: 4px; margin-bottom: 18px; flex-wrap: wrap; }
+.mod-tab {
+  padding: 7px 16px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--panel);
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem;
+  font-weight: 600; letter-spacing: 0.06em;
+  color: var(--dim); cursor: pointer; transition: all .2s;
+}
+.mod-tab.active {
+  border-color: var(--accent); color: var(--accent);
+  background: rgba(0,200,240,0.08);
+}
+.mod-tab-content { display: none; }
+.mod-tab-content.active { display: block; animation: fadeUp .25s ease; }
+
+/* Info boxes */
+.info-box {
+  padding: 12px 16px; border-radius: 8px; margin-bottom: 14px;
+  border-left: 3px solid; font-size: 0.82rem; line-height: 1.6;
+}
+.info-note  { border-color: var(--accent); background: rgba(0,200,240,0.06); color: var(--text); }
+.info-warn  { border-color: var(--warn);   background: rgba(255,193,7,0.07);  color: var(--text); }
+.info-alarm { border-color: var(--alarm);  background: rgba(255,61,113,0.07); color: var(--text); }
+.info-ok    { border-color: var(--ok);     background: rgba(0,230,118,0.07);  color: var(--text); }
+.info-box strong { color: var(--bright); }
+
+/* Step cards for procedures */
+.step-card {
+  display: flex; gap: 14px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px; margin-bottom: 12px;
+  transition: all .2s; cursor: pointer;
+}
+.step-card:hover { border-color: var(--border2); transform: translateX(3px); }
+.step-card.done { border-color: var(--ok); background: rgba(0,230,118,0.04); }
+.step-num {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: var(--border); display: flex; align-items: center; justify-content: center;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.8rem;
+  color: var(--dim); font-weight: 700; transition: all .2s;
+}
+.step-card.done .step-num { background: var(--ok); color: #000; }
+.step-card.active-step .step-num { background: var(--accent); color: #000; }
+.step-body { flex: 1; }
+.step-title {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1rem;
+  font-weight: 700; letter-spacing: 0.05em; color: var(--bright); margin-bottom: 4px;
+}
+.step-desc { font-size: 0.82rem; color: var(--text); line-height: 1.5; }
+.step-code {
+  margin-top: 8px; padding: 8px 12px; border-radius: 5px;
+  background: var(--code-bg); font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem; color: var(--accent); border: 1px solid var(--border);
+  display: none;
+}
+.step-card.active-step .step-code { display: block; }
+.step-check {
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid var(--border2); display: flex; align-items: center;
+  justify-content: center; transition: all .2s; font-size: 0.8rem;
+  align-self: center;
+}
+.step-card.done .step-check { background: var(--ok); border-color: var(--ok); color: #000; }
+
+/* Troubleshoot tree */
+.tree-node {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px; margin-bottom: 14px;
+  animation: fadeUp .3s ease;
+}
+.tree-question {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1.2rem;
+  font-weight: 700; letter-spacing: 0.04em; color: var(--bright);
+  margin-bottom: 14px;
+}
+.tree-opts { display: flex; flex-direction: column; gap: 8px; }
+.tree-opt {
+  padding: 11px 16px; border-radius: 7px;
+  border: 1px solid var(--border2); background: var(--panel2);
+  cursor: pointer; font-size: 0.9rem; color: var(--text);
+  transition: all .2s; text-align: left;
+  font-family: 'Barlow', sans-serif;
+}
+.tree-opt:hover { border-color: var(--accent); color: var(--bright); background: rgba(0,200,240,0.06); transform: translateX(4px); }
+.tree-conclusion {
+  border-radius: 10px; padding: 18px; margin-bottom: 14px;
+  animation: fadeUp .3s ease;
+}
+.tree-conclusion h3 {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1.2rem;
+  font-weight: 900; letter-spacing: 0.06em; margin-bottom: 10px;
+}
+.tree-conclusion ul { padding-left: 18px; }
+.tree-conclusion li { margin-bottom: 6px; font-size: 0.86rem; line-height: 1.5; }
+.conc-alarm { border: 1px solid var(--alarm); background: rgba(255,61,113,0.06); }
+.conc-alarm h3 { color: var(--alarm); }
+.conc-warn  { border: 1px solid var(--warn);  background: rgba(255,193,7,0.06); }
+.conc-warn  h3 { color: var(--warn); }
+.conc-ok    { border: 1px solid var(--ok);    background: rgba(0,230,118,0.06); }
+.conc-ok    h3 { color: var(--ok); }
+.conc-info  { border: 1px solid var(--accent); background: rgba(0,200,240,0.06); }
+.conc-info  h3 { color: var(--accent); }
+.tree-breadcrumb {
+  font-family: 'Share Tech Mono', monospace; font-size: 0.65rem;
+  color: var(--dim); letter-spacing: 0.08em; margin-bottom: 14px;
+  padding: 6px 12px; background: var(--panel2); border-radius: 5px;
+}
+
+/* conversion tool */
+.conv-result {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 2rem; color: var(--accent); padding: 14px;
+  background: var(--input-bg); border-radius: 8px;
+  border: 1px solid var(--border); text-align: center;
+  margin-top: 10px; transition: all .3s;
+}
+
+/* params reference table section */
+.param-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.filter-btn {
+  padding: 6px 14px; border-radius: 20px;
+  border: 1px solid var(--border2); background: transparent;
+  font-family: 'Share Tech Mono', monospace; font-size: 0.68rem;
+  color: var(--dim); cursor: pointer; transition: all .2s; letter-spacing: 0.08em;
+}
+.filter-btn.active { color: var(--bright); }
+.filter-btn[data-f="all"].active  { border-color: var(--accent); color: var(--accent); background: rgba(0,200,240,0.1); }
+.filter-btn[data-f="edar"].active { border-color: var(--c-ph); color: var(--c-ph); background: rgba(0,200,150,0.1); }
+.filter-btn[data-f="etap"].active { border-color: var(--c-flow); color: var(--c-flow); background: rgba(0,180,216,0.1); }
+.filter-btn[data-f="ind"].active  { border-color: var(--c-cond); color: var(--c-cond); background: rgba(247,195,37,0.1); }
+
+/* ph scale */
+.ph-scale { display: flex; height: 22px; border-radius: 6px; overflow: hidden; margin: 8px 0; position: relative; }
+.ph-marker {
+  position: absolute; top: -4px; width: 2px; height: 30px;
+  background: var(--bright); border-radius: 1px;
+  box-shadow: 0 0 8px var(--bright); transition: left .4s;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* responsive */
+@media (max-width: 900px) {
+  :root { --nav-w: 0px; }
+  .sidebar { transform: translateX(-240px); --nav-w: 240px; }
+  .sidebar.open { transform: translateX(0); }
+  .topbar { left: 0; }
+  .main { margin-left: 0; }
+  .menu-btn { display: block; }
+  .grid-form { grid-template-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .grid-3 { grid-template-columns: 1fr; }
+  .page { padding: 14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">💧 AQUA-INST PRO</div>
+    <div class="logo-sub">TOOLKIT · INSTRUMENTACIÓN AGUA</div>
+  </div>
+
+  <div class="nav-section">Cálculo</div>
+  <div class="nav-item active" onclick="goPage('p-ma',this)">
+    <span class="nav-icon">⚡</span> Señales mA ↔ Proceso
+    <span class="nav-badge">4-20</span>
+  </div>
+  <div class="nav-item" onclick="goPage('p-conv',this)">
+    <span class="nav-icon">🔄</span> Conversión de Unidades
+  </div>
+
+  <div class="nav-section">Campo</div>
+  <div class="nav-item" onclick="goPage('p-verif',this)">
+    <span class="nav-icon">🔧</span> Verificación en Campo
+  </div>
+  <div class="nav-item" onclick="goPage('p-troubl',this)">
+    <span class="nav-icon">🔍</span> Troubleshooting
+  </div>
+
+  <div class="nav-section">Referencia</div>
+  <div class="nav-item" onclick="goPage('p-params',this)">
+    <span class="nav-icon">📊</span> Parámetros de Proceso
+  </div>
+  <div class="nav-item" onclick="goPage('p-norm',this)">
+    <span class="nav-icon">📋</span> Normativa
+  </div>
+
+  <div class="sidebar-footer">
+    Ing. Gustavo Blanco Walter<br>
+    Senior Water &amp; Process Eng.<br>
+    © 2025 · v2.0
+  </div>
+</nav>
+
+<!-- ═══════════════ TOPBAR ═══════════════ -->
+<header class="topbar">
+  <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+  <div>
+    <div class="topbar-title" id="topbar-title">Señales mA ↔ Proceso</div>
+    <div class="topbar-breadcrumb" id="topbar-bc">CÁLCULO · 4-20 mA</div>
+  </div>
+  <div class="topbar-right">
+    <span class="sector-pill">EDAR · ETAP · IND</span>
+    <span class="theme-label" id="tlabel">OSCURO</span>
+    <button class="theme-btn" onclick="toggleTheme()" title="Modo claro/oscuro"></button>
+  </div>
+</header>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main class="main">
+
+<!-- ══════════════════════════════════════════
+     PAGE 1: SEÑALES mA ↔ PROCESO
+══════════════════════════════════════════ -->
+<div class="page active" id="p-ma">
+  <div class="page-header">
+    <div class="page-header-icon">⚡</div>
+    <div class="page-header-text">
+      <h2>Señales mA ↔ Proceso</h2>
+      <p>CALCULADORA 4–20 mA / 0–20 mA · TODAS LAS VARIABLES</p>
+      <div class="sector-tags">
+        <span class="stag stag-edar">EDAR</span>
+        <span class="stag stag-etap">ETAP</span>
+        <span class="stag stag-ind">INDUSTRIAL</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mod-tabs">
+    <button class="mod-tab active" onclick="maTab('mt-flow',this)">💧 Caudal</button>
+    <button class="mod-tab" onclick="maTab('mt-turb',this)">🌫️ Turbidez</button>
+    <button class="mod-tab" onclick="maTab('mt-ph',this)">⚗️ pH</button>
+    <button class="mod-tab" onclick="maTab('mt-temp',this)">🌡️ Temperatura</button>
+    <button class="mod-tab" onclick="maTab('mt-cond',this)">⚡ Conductividad</button>
+    <button class="mod-tab" onclick="maTab('mt-press',this)">🔵 Presión</button>
+    <button class="mod-tab" onclick="maTab('mt-do',this)">🟢 OD</button>
+  </div>
+
+  <!-- CAUDAL -->
+  <div class="mod-tab-content active" id="mt-flow">
+    <div class="grid-form">
+      <div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-flow)">⚙ Configuración · Caudal</div>
+          <label>Tipo de señal</label>
+          <select id="f-sig"><option value="4-20">4–20 mA</option><option value="0-20">0–20 mA</option></select>
+          <label>LRV – Caudal mínimo</label><input id="f-min" value="0" placeholder="0">
+          <label>URV – Caudal máximo</label><input id="f-max" value="500" placeholder="500">
+          <label>Unidad de caudal</label>
+          <select id="f-unit">
+            <option value="ls">L/s</option><option value="m3h">m³/h</option><option value="m3d">m³/día</option>
+          </select>
+          <label>Dirección de cálculo</label>
+          <select id="f-dir"><option value="toVal">mA → Caudal</option><option value="toMA">Caudal → mA</option></select>
+          <label>Valor a convertir</label><input id="f-val" value="12">
+          <button class="btn btn-primary" style="background:var(--c-flow)" onclick="calcFlow()">CALCULAR CAUDAL</button>
+        </div>
+      </div>
+      <div>
+        <div class="card"><div class="card-title" style="color:var(--c-flow)">▶ Estado de señal</div><div class="status-box" id="f-status">—</div></div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-flow)">▶ Resultado</div>
+          <div class="result-big">
+            <div class="result-val" id="f-big" style="color:var(--c-flow)">—</div>
+            <div class="result-unit" id="f-big-unit">—</div>
+            <div class="result-ma" id="f-big-ma" style="color:var(--dim)">—</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-flow)">▶ Equivalencias de caudal</div>
+          <div class="r-grid">
+            <div class="r-cell"><div class="rl">L/s</div><div class="rv" id="f-ls">—</div></div>
+            <div class="r-cell"><div class="rl">m³/h</div><div class="rv" id="f-m3h">—</div></div>
+            <div class="r-cell"><div class="rl">m³/día</div><div class="rv" id="f-m3d">—</div></div>
+            <div class="r-cell"><div class="rl">% Span</div><div class="rv" id="f-pct">—</div><div class="ru">%</div></div>
+          </div>
+          <div class="span-row" style="margin-top:12px">
+            <div class="span-num" id="f-span-num">—</div>
+            <div class="bar-bg"><div class="bar-fill" id="f-bar" style="width:0%;background:var(--c-flow)"></div></div>
+          </div>
+        </div>
+        <div class="card"><div class="card-title" style="color:var(--c-flow)">▶ Curva 4–20 mA</div><canvas class="linechart" id="f-chart" height="180"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TURBIDEZ -->
+  <div class="mod-tab-content" id="mt-turb">
+    <div class="grid-form">
+      <div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-turb)">⚙ Configuración · Turbidez</div>
+          <label>Tipo de señal</label>
+          <select id="t-sig"><option value="4-20">4–20 mA</option><option value="0-20">0–20 mA</option></select>
+          <label>Unidad</label>
+          <select id="t-unit-sel"><option value="FNU">FNU (ISO 7027)</option><option value="NTU">NTU (EPA)</option><option value="FAU">FAU</option></select>
+          <label>LRV</label><input id="t-min" value="0">
+          <label>URV</label><input id="t-max" value="100">
+          <label>Rangos rápidos EDAR</label>
+          <div class="presets">
+            <button class="pill" onclick="tRange(0,40,this)" style="border-color:var(--c-turb);color:var(--c-turb)">0–40</button>
+            <button class="pill active" onclick="tRange(0,100,this)" style="border-color:var(--c-turb);color:var(--c-turb)">0–100</button>
+            <button class="pill" onclick="tRange(0,500,this)" style="border-color:var(--c-turb);color:var(--c-turb)">0–500</button>
+            <button class="pill" onclick="tRange(0,1000,this)" style="border-color:var(--c-turb);color:var(--c-turb)">0–1000</button>
+            <button class="pill" onclick="tRange(0,4000,this)" style="border-color:var(--c-turb);color:var(--c-turb)">0–4000</button>
+          </div>
+          <label>Dirección</label>
+          <select id="t-dir"><option value="toVal">mA → Turbidez</option><option value="toMA">Turbidez → mA</option></select>
+          <label>Valor</label><input id="t-val" value="5.9">
+          <button class="btn btn-primary" style="background:var(--c-turb)" onclick="calcTurb()">CALCULAR TURBIDEZ</button>
+        </div>
+      </div>
+      <div>
+        <div class="card"><div class="card-title" style="color:var(--c-turb)">▶ Estado</div><div class="status-box" id="t-status">—</div></div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-turb)">▶ Resultado</div>
+          <div class="result-big">
+            <div class="result-val" id="t-big" style="color:var(--c-turb)">—</div>
+            <div class="result-unit" id="t-big-unit">FNU</div>
+            <div class="result-ma" id="t-big-ma" style="color:var(--dim)">—</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-turb)">▶ % Span & Fórmula</div>
+          <div class="span-row"><div class="span-num" id="t-span-num">—</div><div class="bar-bg"><div class="bar-fill" id="t-bar" style="width:0%;background:var(--c-turb)"></div></div></div>
+          <div class="formula-box" id="t-formula" style="margin-top:12px">Ingrese un valor y calcule.</div>
+        </div>
+        <div class="card"><div class="card-title" style="color:var(--c-turb)">▶ Curva</div><canvas class="linechart" id="t-chart" height="180"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- pH -->
+  <div class="mod-tab-content" id="mt-ph">
+    <div class="grid-form">
+      <div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-ph)">⚙ Configuración · pH</div>
+          <label>Tipo de señal</label>
+          <select id="ph-sig"><option value="4-20">4–20 mA</option><option value="0-20">0–20 mA</option></select>
+          <label>LRV</label><input id="ph-min" value="0">
+          <label>URV</label><input id="ph-max" value="14">
+          <label>Rangos rápidos</label>
+          <div class="presets">
+            <button class="pill active" onclick="phRange(0,14,this)" style="border-color:var(--c-ph);color:var(--c-ph)">0–14</button>
+            <button class="pill" onclick="phRange(4,10,this)" style="border-color:var(--c-ph);color:var(--c-ph)">4–10</button>
+            <button class="pill" onclick="phRange(6,9,this)" style="border-color:var(--c-ph);color:var(--c-ph)">6–9 EDAR</button>
+          </div>
+          <label>Dirección</label>
+          <select id="ph-dir"><option value="toVal">mA → pH</option><option value="toMA">pH → mA</option></select>
+          <label>Valor</label><input id="ph-val" value="7.2">
+          <button class="btn btn-primary" style="background:var(--c-ph);color:#000" onclick="calcPH()">CALCULAR pH</button>
+        </div>
+      </div>
+      <div>
+        <div class="card"><div class="card-title" style="color:var(--c-ph)">▶ Estado</div><div class="status-box" id="ph-status">—</div></div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-ph)">▶ Resultado</div>
+          <div class="result-big">
+            <div class="result-val" id="ph-big" style="color:var(--c-ph)">—</div>
+            <div class="result-unit">pH</div>
+            <div class="result-ma" id="ph-big-ma" style="color:var(--dim)">—</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-ph)">▶ Escala visual pH</div>
+          <div class="ph-scale" id="ph-scale-bar"></div>
+          <div class="ph-marker" id="ph-marker" style="left:0%"></div>
+          <div style="display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--dim);margin-top:4px">
+            <span>0 Ácido</span><span>7 Neutro</span><span>14 Alcalino</span>
+          </div>
+          <div style="margin-top:8px;font-family:'Share Tech Mono',monospace;font-size:0.82rem;text-align:center" id="ph-zone">—</div>
+          <div class="span-row" style="margin-top:10px"><div class="span-num" id="ph-span-num">—</div><div class="bar-bg"><div class="bar-fill" id="ph-bar" style="width:0%;background:var(--c-ph)"></div></div></div>
+        </div>
+        <div class="card"><div class="card-title" style="color:var(--c-ph)">▶ Curva</div><canvas class="linechart" id="ph-chart" height="180"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEMPERATURA -->
+  <div class="mod-tab-content" id="mt-temp">
+    <div class="grid-form">
+      <div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-temp)">⚙ Configuración · Temperatura</div>
+          <label>Tipo de señal</label>
+          <select id="te-sig"><option value="4-20">4–20 mA</option><option value="0-20">0–20 mA</option></select>
+          <label>Unidad</label>
+          <select id="te-unit"><option value="C">°C</option><option value="F">°F</option></select>
+          <label>LRV</label><input id="te-min" value="0">
+          <label>URV</label><input id="te-max" value="50">
+          <label>Rangos rápidos</label>
+          <div class="presets">
+            <button class="pill active" onclick="teRange(0,50,this)" style="border-color:var(--c-temp);color:var(--c-temp)">0–50°C</button>
+            <button class="pill" onclick="teRange(0,100,this)" style="border-color:var(--c-temp);color:var(--c-temp)">0–100°C</button>
+            <button class="pill" onclick="teRange(-10,60,this)" style="border-color:var(--c-temp);color:var(--c-temp)">-10–60°C</button>
+          </div>
+          <label>Dirección</label>
+          <select id="te-dir"><option value="toVal">mA → Temperatura</option><option value="toMA">Temperatura → mA</option></select>
+          <label>Valor</label><input id="te-val" value="12">
+          <button class="btn btn-primary" style="background:var(--c-temp)" onclick="calcTemp()">CALCULAR TEMPERATURA</button>
+        </div>
+      </div>
+      <div>
+        <div class="card"><div class="card-title" style="color:var(--c-temp)">▶ Estado</div><div class="status-box" id="te-status">—</div></div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-temp)">▶ Resultado</div>
+          <div class="result-big">
+            <div class="result-val" id="te-big" style="color:var(--c-temp)">—</div>
+            <div class="result-unit" id="te-big-unit">°C</div>
+            <div class="result-ma" id="te-big-ma" style="color:var(--dim)">—</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-temp)">▶ Conversión °C / °F / K</div>
+          <div class="r-grid">
+            <div class="r-cell"><div class="rl">Celsius</div><div class="rv" id="te-c">—</div><div class="ru">°C</div></div>
+            <div class="r-cell"><div class="rl">Fahrenheit</div><div class="rv" id="te-f">—</div><div class="ru">°F</div></div>
+            <div class="r-cell"><div class="rl">Kelvin</div><div class="rv" id="te-k">—</div><div class="ru">K</div></div>
+            <div class="r-cell"><div class="rl">% Span</div><div class="rv" id="te-pct">—</div><div class="ru">%</div></div>
+          </div>
+          <div class="span-row" style="margin-top:12px">
+            <div class="span-num" id="te-span-num">—</div>
+            <div class="bar-bg"><div class="bar-fill" id="te-bar" style="width:0%;background:linear-gradient(90deg,#1e90ff,#ff6b35)"></div></div>
+          </div>
+        </div>
+        <div class="card"><div class="card-title" style="color:var(--c-temp)">▶ Curva</div><canvas class="linechart" id="te-chart" height="180"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONDUCTIVIDAD -->
+  <div class="mod-tab-content" id="mt-cond">
+    <div class="grid-form">
+      <div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-cond)">⚙ Configuración · Conductividad</div>
+          <label>Tipo de señal</label>
+          <select id="co-sig"><option value="4-20">4–20 mA</option><option value="0-20">0–20 mA</option></select>
+          <label>Unidad</label>
+          <select id="co-unit"><option value="uS">µS/cm</option><option value="mS">mS/cm</option></select>
+          <label>LRV</label><input id="co-min" value="0">
+          <label>URV</label><input id="co-max" value="2000">
+          <label>Rangos rápidos</label>
+          <div class="presets">
+            <button class="pill active" onclick="coRange(0,2000,this)" style="border-color:var(--c-cond);color:var(--c-cond)">0–2000 µS</button>
+            <button class="pill" onclick="coRange(0,5000,this)" style="border-color:var(--c-cond);color:var(--c-cond)">0–5000 µS</button>
+            <button class="pill" onclick="coRange(0,10000,this)" style="border-color:var(--c-cond);color:var(--c-cond)">0–10000 µS</button>
+          </div>
+          <label>Dirección</label>
+          <select id="co-dir"><option value="toVal">mA → Conductividad</option><option value="toMA">Conductividad → mA</option></select>
+          <label>Valor</label><input id="co-val" value="12">
+          <button class="btn btn-primary" style="background:var(--c-cond);color:#000" onclick="calcCond()">CALCULAR CONDUCTIVIDAD</button>
+        </div>
+      </div>
+      <div>
+        <div class="card"><div class="card-title" style="color:var(--c-cond)">▶ Estado</div><div class="status-box" id="co-status">—</div></div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-cond)">▶ Resultado</div>
+          <div class="result-big">
+            <div class="result-val" id="co-big" style="color:var(--c-cond)">—</div>
+            <div class="result-unit" id="co-big-unit">µS/cm</div>
+            <div class="result-ma" id="co-big-ma" style="color:var(--dim)">—</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-cond)">▶ Equivalencias</div>
+          <div class="r-grid">
+            <div class="r-cell"><div class="rl">µS/cm</div><div class="rv" id="co-us">—</div></div>
+            <div class="r-cell"><div class="rl">mS/cm</div><div class="rv" id="co-ms">—</div></div>
+            <div class="r-cell"><div class="rl">Resistividad</div><div class="rv" id="co-res">—</div><div class="ru">kΩ·cm</div></div>
+            <div class="r-cell"><div class="rl">TDS aprox.</div><div class="rv" id="co-tds">—</div><div class="ru">mg/L</div></div>
+          </div>
+          <div class="span-row" style="margin-top:12px">
+            <div class="span-num" id="co-span-num">—</div>
+            <div class="bar-bg"><div class="bar-fill" id="co-bar" style="width:0%;background:var(--c-cond)"></div></div>
+          </div>
+        </div>
+        <div class="card"><div class="card-title" style="color:var(--c-cond)">▶ Fórmula & Curva</div>
+          <div class="formula-box" id="co-formula" style="margin-bottom:10px">Ingrese un valor y calcule.</div>
+          <canvas class="linechart" id="co-chart" height="160"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRESIÓN -->
+  <div class="mod-tab-content" id="mt-press">
+    <div class="grid-form">
+      <div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-press)">⚙ Configuración · Presión</div>
+          <label>Tipo de señal</label>
+          <select id="pr-sig"><option value="4-20">4–20 mA</option><option value="0-20">0–20 mA</option></select>
+          <label>Unidad de presión</label>
+          <select id="pr-unit">
+            <option value="bar">bar</option><option value="mbar">mbar</option>
+            <option value="psi">psi</option><option value="kPa">kPa</option>
+            <option value="mca">m.c.a.</option>
+          </select>
+          <label>LRV</label><input id="pr-min" value="0">
+          <label>URV</label><input id="pr-max" value="10">
+          <label>Rangos rápidos</label>
+          <div class="presets">
+            <button class="pill active" onclick="prRange(0,10,this)" style="border-color:var(--c-press);color:var(--c-press)">0–10 bar</button>
+            <button class="pill" onclick="prRange(0,6,this)" style="border-color:var(--c-press);color:var(--c-press)">0–6 bar</button>
+            <button class="pill" onclick="prRange(0,1,this)" style="border-color:var(--c-press);color:var(--c-press)">0–1 bar</button>
+            <button class="pill" onclick="prRange(-1,0,this)" style="border-color:var(--c-press);color:var(--c-press)">Vacío</button>
+          </div>
+          <label>Dirección</label>
+          <select id="pr-dir"><option value="toVal">mA → Presión</option><option value="toMA">Presión → mA</option></select>
+          <label>Valor</label><input id="pr-val" value="12">
+          <button class="btn btn-primary" style="background:var(--c-press)" onclick="calcPress()">CALCULAR PRESIÓN</button>
+        </div>
+      </div>
+      <div>
+        <div class="card"><div class="card-title" style="color:var(--c-press)">▶ Estado</div><div class="status-box" id="pr-status">—</div></div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-press)">▶ Resultado</div>
+          <div class="result-big">
+            <div class="result-val" id="pr-big" style="color:var(--c-press)">—</div>
+            <div class="result-unit" id="pr-big-unit">bar</div>
+            <div class="result-ma" id="pr-big-ma" style="color:var(--dim)">—</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-press)">▶ Conversiones de presión</div>
+          <div class="r-grid">
+            <div class="r-cell"><div class="rl">bar</div><div class="rv" id="pr-bar">—</div></div>
+            <div class="r-cell"><div class="rl">psi</div><div class="rv" id="pr-psi">—</div></div>
+            <div class="r-cell"><div class="rl">kPa</div><div class="rv" id="pr-kpa">—</div></div>
+            <div class="r-cell"><div class="rl">m.c.a.</div><div class="rv" id="pr-mca">—</div></div>
+          </div>
+          <div class="span-row" style="margin-top:12px">
+            <div class="span-num" id="pr-span-num">—</div>
+            <div class="bar-bg"><div class="bar-fill" id="pr-bar-fill" style="width:0%;background:var(--c-press)"></div></div>
+          </div>
+        </div>
+        <div class="card"><div class="card-title" style="color:var(--c-press)">▶ Curva</div><canvas class="linechart" id="pr-chart" height="180"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OD (Oxígeno Disuelto) -->
+  <div class="mod-tab-content" id="mt-do">
+    <div class="grid-form">
+      <div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-do)">⚙ Configuración · Oxígeno Disuelto</div>
+          <label>Tipo de señal</label>
+          <select id="do-sig"><option value="4-20">4–20 mA</option><option value="0-20">0–20 mA</option></select>
+          <label>Unidad</label>
+          <select id="do-unit"><option value="mgl">mg/L (ppm)</option><option value="pct">% Saturación</option></select>
+          <label>LRV</label><input id="do-min" value="0">
+          <label>URV</label><input id="do-max" value="20">
+          <label>Rangos rápidos</label>
+          <div class="presets">
+            <button class="pill active" onclick="doRange(0,20,this)" style="border-color:var(--c-do);color:var(--c-do)">0–20 mg/L</button>
+            <button class="pill" onclick="doRange(0,10,this)" style="border-color:var(--c-do);color:var(--c-do)">0–10 mg/L</button>
+            <button class="pill" onclick="doRange(0,200,this)" style="border-color:var(--c-do);color:var(--c-do)">0–200 %Sat</button>
+          </div>
+          <label>Dirección</label>
+          <select id="do-dir"><option value="toVal">mA → OD</option><option value="toMA">OD → mA</option></select>
+          <label>Valor</label><input id="do-val" value="12">
+          <button class="btn btn-primary" style="background:var(--c-do);color:#000" onclick="calcDO()">CALCULAR OD</button>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-do)">📋 Rangos OD · Referencia EDAR</div>
+          <table class="norm-table">
+            <tr><th>Punto</th><th>OD (mg/L)</th><th>Nota</th></tr>
+            <tr><td>Reactor aerobio (nitrificación)</td><td class="hl">&gt; 2,0</td><td><span class="ntag ntag-edar">EDAR</span></td></tr>
+            <tr><td>Reactor aerobio (DBO5)</td><td class="hl">1,5 – 4,0</td><td><span class="ntag ntag-edar">EDAR</span></td></tr>
+            <tr><td>Zona anóxica (desnitrificación)</td><td class="hl">&lt; 0,5</td><td><span class="ntag ntag-edar">EDAR</span></td></tr>
+            <tr><td>Efluente vertido</td><td class="hl">&gt; 4,0</td><td><span class="ntag ntag-ok">OK</span></td></tr>
+            <tr><td>Agua saturación (20°C)</td><td class="hl">9,1</td><td><span class="ntag ntag-etap">ETAP</span></td></tr>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="card"><div class="card-title" style="color:var(--c-do)">▶ Estado</div><div class="status-box" id="do-status">—</div></div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-do)">▶ Resultado</div>
+          <div class="result-big">
+            <div class="result-val" id="do-big" style="color:var(--c-do)">—</div>
+            <div class="result-unit" id="do-big-unit">mg/L</div>
+            <div class="result-ma" id="do-big-ma" style="color:var(--dim)">—</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-do)">▶ % Span</div>
+          <div class="span-row"><div class="span-num" id="do-span-num">—</div><div class="bar-bg"><div class="bar-fill" id="do-bar" style="width:0%;background:var(--c-do)"></div></div></div>
+        </div>
+        <div class="card"><div class="card-title" style="color:var(--c-do)">▶ Curva</div><canvas class="linechart" id="do-chart" height="180"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div><!-- /p-ma -->
+
+
+<!-- ══════════════════════════════════════════
+     PAGE 2: CONVERSIONES DE UNIDADES
+══════════════════════════════════════════ -->
+<div class="page" id="p-conv">
+  <div class="page-header">
+    <div class="page-header-icon">🔄</div>
+    <div class="page-header-text">
+      <h2>Conversión de Unidades</h2>
+      <p>CONVERSIONES RÁPIDAS PARA INSTRUMENTACIÓN EN TRATAMIENTO DE AGUA</p>
+      <div class="sector-tags">
+        <span class="stag stag-edar">EDAR</span>
+        <span class="stag stag-etap">ETAP</span>
+        <span class="stag stag-ind">INDUSTRIAL</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mod-tabs">
+    <button class="mod-tab active" onclick="convTab('cv-flow',this)">💧 Caudal</button>
+    <button class="mod-tab" onclick="convTab('cv-press',this)">🔵 Presión</button>
+    <button class="mod-tab" onclick="convTab('cv-temp',this)">🌡️ Temperatura</button>
+    <button class="mod-tab" onclick="convTab('cv-cond',this)">⚡ Conductividad</button>
+    <button class="mod-tab" onclick="convTab('cv-conc',this)">🧪 Concentración</button>
+  </div>
+
+  <!-- CAUDAL CONV -->
+  <div class="mod-tab-content active" id="cv-flow">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title" style="color:var(--c-flow)">▶ Convertir Caudal</div>
+        <label>Valor</label><input id="cv-f-val" value="1" oninput="convFlow()">
+        <label>Desde</label>
+        <select id="cv-f-from" onchange="convFlow()">
+          <option value="ls">L/s</option><option value="lm">L/min</option><option value="lh">L/h</option>
+          <option value="m3h">m³/h</option><option value="m3d">m³/día</option><option value="gpm">GPM (US)</option><option value="m3s">m³/s</option>
+        </select>
+        <div class="conv-result" id="cv-f-result">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--c-flow)">▶ Tabla de equivalencias</div>
+        <table class="norm-table" id="cv-f-table">
+          <tr><th>Unidad</th><th>Valor</th></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRESIÓN CONV -->
+  <div class="mod-tab-content" id="cv-press">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title" style="color:var(--c-press)">▶ Convertir Presión</div>
+        <label>Valor</label><input id="cv-p-val" value="1" oninput="convPress()">
+        <label>Desde</label>
+        <select id="cv-p-from" onchange="convPress()">
+          <option value="bar">bar</option><option value="mbar">mbar</option>
+          <option value="psi">psi</option><option value="kPa">kPa</option>
+          <option value="MPa">MPa</option><option value="atm">atm</option>
+          <option value="mca">m.c.a.</option><option value="mmHg">mmHg</option>
+        </select>
+        <div class="conv-result" id="cv-p-result">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--c-press)">▶ Tabla de equivalencias</div>
+        <table class="norm-table" id="cv-p-table"><tr><th>Unidad</th><th>Valor</th></tr></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEMPERATURA CONV -->
+  <div class="mod-tab-content" id="cv-temp">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title" style="color:var(--c-temp)">▶ Convertir Temperatura</div>
+        <label>Valor</label><input id="cv-t-val" value="25" oninput="convTemp()">
+        <label>Desde</label>
+        <select id="cv-t-from" onchange="convTemp()">
+          <option value="C">°C (Celsius)</option>
+          <option value="F">°F (Fahrenheit)</option>
+          <option value="K">K (Kelvin)</option>
+        </select>
+        <div class="conv-result" id="cv-t-result">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--c-temp)">▶ Tabla completa</div>
+        <table class="norm-table" id="cv-t-table"><tr><th>Unidad</th><th>Valor</th></tr></table>
+        <div class="info-box info-note" style="margin-top:12px">
+          <strong>Fórmulas:</strong><br>
+          °F = (°C × 9/5) + 32 &nbsp;|&nbsp; K = °C + 273,15<br>
+          °C = (°F − 32) × 5/9
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONDUCTIVIDAD CONV -->
+  <div class="mod-tab-content" id="cv-cond">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title" style="color:var(--c-cond)">▶ Conductividad ↔ Resistividad ↔ TDS</div>
+        <label>Conductividad (µS/cm)</label><input id="cv-c-val" value="500" oninput="convCond()">
+        <div class="conv-result" id="cv-c-result">—</div>
+        <div class="info-box info-note" style="margin-top:12px">
+          <strong>Factor TDS:</strong> TDS ≈ Cond × 0,65 (NaCl) · Cond × 0,55 (KCl)
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--c-cond)">▶ Equivalencias</div>
+        <table class="norm-table" id="cv-c-table"><tr><th>Magnitud</th><th>Valor</th></tr></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONCENTRACIÓN -->
+  <div class="mod-tab-content" id="cv-conc">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title" style="color:var(--c-ph)">▶ Concentración de dosificación</div>
+        <label>Concentración (mg/L = ppm)</label><input id="cv-cc-ppm" value="10" oninput="convConc()">
+        <label>Caudal de agua (m³/h)</label><input id="cv-cc-q" value="100" oninput="convConc()">
+        <label>Concentración de la solución (%)</label><input id="cv-cc-sol" value="15" oninput="convConc()">
+        <div class="conv-result" id="cv-cc-result">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--c-ph)">▶ Resultado de dosificación</div>
+        <table class="norm-table" id="cv-cc-table"><tr><th>Caudal dosificación</th><th>Valor</th></tr></table>
+        <div class="info-box info-note" style="margin-top:12px">
+          <strong>Fórmula:</strong> Q_dos = (Cdos × Q_agua) / (C_sol × 10)<br>
+          Donde Cdos en mg/L, Q en m³/h, C_sol en %
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /p-conv -->
+
+
+<!-- ══════════════════════════════════════════
+     PAGE 3: VERIFICACIÓN EN CAMPO
+══════════════════════════════════════════ -->
+<div class="page" id="p-verif">
+  <div class="page-header">
+    <div class="page-header-icon">🔧</div>
+    <div class="page-header-text">
+      <h2>Verificación en Campo</h2>
+      <p>PROCEDIMIENTOS PASO A PASO · CHECK-LIST INTERACTIVO</p>
+      <div class="sector-tags">
+        <span class="stag stag-edar">EDAR</span>
+        <span class="stag stag-etap">ETAP</span>
+        <span class="stag stag-ind">INDUSTRIAL</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mod-tabs">
+    <button class="mod-tab active" onclick="verifTab('vt-loop',this)">🔌 Prueba de Lazo</button>
+    <button class="mod-tab" onclick="verifTab('vt-zero',this)">⭕ Zero/Span Check</button>
+    <button class="mod-tab" onclick="verifTab('vt-multimeter',this)">📟 Uso del Multímetro</button>
+    <button class="mod-tab" onclick="verifTab('vt-emf',this)">💧 Caudalímetro EM</button>
+    <button class="mod-tab" onclick="verifTab('vt-ph-probe',this)">⚗️ Sonda pH</button>
+  </div>
+
+  <!-- PRUEBA DE LAZO -->
+  <div class="mod-tab-content active" id="vt-loop">
+    <div class="grid-2">
+      <div>
+        <div class="info-box info-warn">
+          <strong>⚠ SEGURIDAD:</strong> Antes de intervenir en el lazo, verificar con el operador de planta si la señal está en control automático. Poner en MANUAL si aplica.
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--accent)">📋 Procedimiento — Prueba de Lazo 4–20 mA</div>
+          <div id="steps-loop"></div>
+          <button class="btn btn-outline" style="margin-top:10px;width:100%" onclick="resetSteps('steps-loop', stepsLoop, renderSteps)">↺ Reiniciar procedimiento</button>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title" style="color:var(--accent)">🧮 Calculadora de verificación</div>
+          <div class="info-box info-note">Ingrese los valores medidos en campo para verificar el error del transmisor.</div>
+          <label>Señal nominal (mA)</label><input id="vl-nominal" value="12" oninput="calcLoopError()">
+          <label>Señal medida en campo (mA)</label><input id="vl-medida" value="12.05" oninput="calcLoopError()">
+          <label>Span total (mA)</label><input id="vl-span" value="16" oninput="calcLoopError()">
+          <label>Clase de exactitud del instrumento (%)</label><input id="vl-clase" value="0.5" oninput="calcLoopError()">
+          <div id="loop-error-result" style="margin-top:14px"></div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--accent)">📌 Referencia rápida mA → %</div>
+          <table class="norm-table">
+            <tr><th>mA (4–20)</th><th>% Span</th><th>Proceso típico</th></tr>
+            <tr><td class="hl">4.000</td><td>0%</td><td>LRV (0%)</td></tr>
+            <tr><td class="hl">5.600</td><td>10%</td><td>—</td></tr>
+            <tr><td class="hl">8.000</td><td>25%</td><td>25%</td></tr>
+            <tr><td class="hl">12.000</td><td>50%</td><td>50% midscale</td></tr>
+            <tr><td class="hl">16.000</td><td>75%</td><td>75%</td></tr>
+            <tr><td class="hl">20.000</td><td>100%</td><td>URV (100%)</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZERO/SPAN -->
+  <div class="mod-tab-content" id="vt-zero">
+    <div class="grid-2">
+      <div>
+        <div class="info-box info-alarm">
+          <strong>⚠ IMPORTANTE:</strong> El Zero/Span check requiere soluciones patrón certificadas con trazabilidad al laboratorio. Registrar número de lote y fecha de caducidad.
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--accent)">📋 Procedimiento — Verificación Zero/Span</div>
+          <div id="steps-zero"></div>
+          <button class="btn btn-outline" style="margin-top:10px;width:100%" onclick="resetSteps('steps-zero', stepsZero, renderSteps)">↺ Reiniciar</button>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title" style="color:var(--accent)">🧮 Cálculo de error de calibración</div>
+          <label>Valor patrón (certificado)</label><input id="zs-patron" value="100" oninput="calcZSError()">
+          <label>Valor leído en instrumento</label><input id="zs-leido" value="101.2" oninput="calcZSError()">
+          <label>Rango total del instrumento (URV–LRV)</label><input id="zs-rango" value="200" oninput="calcZSError()">
+          <label>Incertidumbre del patrón (±)</label><input id="zs-incert" value="0.5" oninput="calcZSError()">
+          <div id="zs-error-result" style="margin-top:14px"></div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--accent)">📌 Criterios de aceptación típicos</div>
+          <table class="norm-table">
+            <tr><th>Clase instrumento</th><th>Error máx.</th><th>Uso</th></tr>
+            <tr><td>Clase A (laboratorio)</td><td class="hl">± 0,1 % FS</td><td>Patrón</td></tr>
+            <tr><td>Clase B (proceso crítico)</td><td class="hl">± 0,5 % FS</td><td>Control</td></tr>
+            <tr><td>Clase C (proceso estándar)</td><td class="hl">± 1,0 % FS</td><td>Monitoreo</td></tr>
+            <tr><td>Clase D (indicación)</td><td class="hl">± 2,0 % FS</td><td>Referencia</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MULTÍMETRO -->
+  <div class="mod-tab-content" id="vt-multimeter">
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <div class="card-title" style="color:var(--accent)">📋 Medir 4–20 mA con multímetro</div>
+          <div id="steps-multi"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title" style="color:var(--accent)">⚠ Modos de conexión</div>
+          <div class="info-box info-warn">
+            <strong>Serie (correcto):</strong> El multímetro se inserta EN SERIE en el lazo. Selector en mA DC. Romper el lazo para insertar.<br><br>
+            <strong>⛔ NUNCA en paralelo:</strong> Medir mA en paralelo cortocircuita el lazo y puede dañar el transmisor.
+          </div>
+          <div class="info-box info-note">
+            <strong>Alternativa sin romper el lazo:</strong> Medir la caída de tensión en la resistencia de lazo (250 Ω = estándar).<br>
+            V = I × R → V/250 = I (en amperios)
+          </div>
+          <div class="card">
+            <div class="card-title" style="color:var(--accent)">🧮 V → mA (resistencia de lazo)</div>
+            <label>Tensión medida (V)</label><input id="mm-v" value="3.0" oninput="calcVtoMA()">
+            <label>Resistencia del shunt (Ω)</label><input id="mm-r" value="250" oninput="calcVtoMA()">
+            <div class="conv-result" id="mm-result">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAUDALÍMETRO EM -->
+  <div class="mod-tab-content" id="vt-emf">
+    <div class="grid-2">
+      <div>
+        <div class="info-box info-warn">
+          <strong>Requisito crítico:</strong> El tubo DEBE estar completamente lleno de líquido durante la verificación. Con tubo parcialmente lleno la señal es inválida.
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-flow)">📋 Verificación caudalímetro electromagnético</div>
+          <div id="steps-emf"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-flow)">🧮 Verificación de salida mA</div>
+          <label>Caudal mínimo (LRV)</label><input id="emf-lrv" value="0">
+          <label>Caudal máximo (URV)</label><input id="emf-urv" value="500">
+          <label>Unidad</label>
+          <select id="emf-unit"><option value="ls">L/s</option><option value="m3h">m³/h</option></select>
+          <label>Caudal simulado con herramienta</label><input id="emf-sim" value="250" oninput="calcEMFcheck()">
+          <label>Señal mA esperada</label>
+          <div class="conv-result" id="emf-expected">—</div>
+          <label style="margin-top:10px">Señal mA medida realmente</label><input id="emf-measured" value="" placeholder="ingrese valor medido" oninput="calcEMFcheck()">
+          <div id="emf-result" style="margin-top:10px"></div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-flow)">📌 Códigos de error — Promag / SITRANS</div>
+          <table class="norm-table">
+            <tr><th>Código</th><th>Significado</th><th>Acción</th></tr>
+            <tr><td class="hl" style="color:var(--alarm)">F002</td><td>Tensión alimentación baja</td><td>Verificar fuente 24 VDC</td></tr>
+            <tr><td class="hl" style="color:var(--alarm)">F042</td><td>Frecuencia EMC excesiva</td><td>Verificar puesta a tierra</td></tr>
+            <tr><td class="hl" style="color:var(--warn)">S044</td><td>Error proceso — tubo vacío</td><td>Verificar llenado tubo</td></tr>
+            <tr><td class="hl" style="color:var(--warn)">S082</td><td>Señal entrada inconsistente</td><td>Verificar conexiones</td></tr>
+            <tr><td class="hl" style="color:var(--ok)">I046</td><td>Limitación de salida activa</td><td>Verificar LRV/URV</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SONDA pH -->
+  <div class="mod-tab-content" id="vt-ph-probe">
+    <div class="grid-2">
+      <div>
+        <div class="info-box info-alarm">
+          <strong>Seguridad:</strong> Las soluciones tampón (buffer) son reactivos químicos. Usar EPIs: guantes, gafas. Nunca mezclar soluciones usadas con las originales.
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-ph)">📋 Calibración/Verificación sonda pH</div>
+          <div id="steps-ph"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-ph)">🧮 Verificación de pendiente</div>
+          <div class="info-box info-note">
+            La pendiente teórica de la sonda a 25°C es 59,16 mV/pH. Una pendiente entre 95-105% indica electrodo en buen estado.
+          </div>
+          <label>Tensión en pH 4,0 (mV)</label><input id="ph-v4" value="175" oninput="calcPhSlope()">
+          <label>Tensión en pH 7,0 (mV)</label><input id="ph-v7" value="0" oninput="calcPhSlope()">
+          <div id="ph-slope-result" style="margin-top:12px"></div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--c-ph)">📌 Soluciones tampón de referencia (25°C)</div>
+          <table class="norm-table">
+            <tr><th>Buffer</th><th>pH (25°C)</th><th>pH (10°C)</th><th>Norma</th></tr>
+            <tr><td>Ftalato ácido potásico</td><td class="hl">4,008</td><td>4,001</td><td>NIST</td></tr>
+            <tr><td>Fosfato (KH₂PO₄/Na₂HPO₄)</td><td class="hl">6,865</td><td>6,923</td><td>NIST</td></tr>
+            <tr><td>Bórax (Na₂B₄O₇·10H₂O)</td><td class="hl">9,180</td><td>9,332</td><td>NIST</td></tr>
+            <tr><td>Carbonato sódico</td><td class="hl">10,012</td><td>10,179</td><td>NIST</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /p-verif -->
+
+
+<!-- ══════════════════════════════════════════
+     PAGE 4: TROUBLESHOOTING
+══════════════════════════════════════════ -->
+<div class="page" id="p-troubl">
+  <div class="page-header">
+    <div class="page-header-icon">🔍</div>
+    <div class="page-header-text">
+      <h2>Troubleshooting</h2>
+      <p>ÁRBOLES DE DIAGNÓSTICO INTERACTIVOS · SEÑALES 4–20 mA</p>
+      <div class="sector-tags">
+        <span class="stag stag-edar">EDAR</span>
+        <span class="stag stag-etap">ETAP</span>
+        <span class="stag stag-ind">INDUSTRIAL</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mod-tabs">
+    <button class="mod-tab active" onclick="troublTab('tr-select',this)">🎯 Seleccionar síntoma</button>
+    <button class="mod-tab" id="tr-active-tab" style="display:none">🌲 Árbol activo</button>
+  </div>
+
+  <!-- SELECTOR DE SÍNTOMA -->
+  <div class="mod-tab-content active" id="tr-select">
+    <div class="info-box info-note">
+      Seleccione el síntoma que describe mejor el problema del instrumento:
+    </div>
+    <div class="grid-3">
+      <div class="card" style="cursor:pointer;transition:all .2s;border-color:var(--border2)" onclick="startTree('signal_fixed')" onmouseover="this.style.borderColor='var(--alarm)'" onmouseout="this.style.borderColor='var(--border2)'">
+        <div style="font-size:2rem;margin-bottom:8px">📌</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:var(--bright);margin-bottom:4px">Señal fija o bloqueada</div>
+        <div style="font-size:0.82rem;color:var(--dim)">El instrumento siempre muestra el mismo valor aunque el proceso cambie</div>
+        <div class="ntag ntag-alarm" style="margin-top:10px">ALTA PRIORIDAD</div>
+      </div>
+      <div class="card" style="cursor:pointer;transition:all .2s;border-color:var(--border2)" onclick="startTree('no_signal')" onmouseover="this.style.borderColor='var(--alarm)'" onmouseout="this.style.borderColor='var(--border2)'">
+        <div style="font-size:2rem;margin-bottom:8px">❌</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:var(--bright);margin-bottom:4px">Sin señal / 0 mA</div>
+        <div style="font-size:0.82rem;color:var(--dim)">La señal mA es 0 o inferior a 3,6 mA — posible cable roto o fallo de alimentación</div>
+        <div class="ntag ntag-alarm" style="margin-top:10px">ALTA PRIORIDAD</div>
+      </div>
+      <div class="card" style="cursor:pointer;transition:all .2s;border-color:var(--border2)" onclick="startTree('drift')" onmouseover="this.style.borderColor='var(--warn)'" onmouseout="this.style.borderColor='var(--border2)'">
+        <div style="font-size:2rem;margin-bottom:8px">📉</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:var(--bright);margin-bottom:4px">Deriva de señal</div>
+        <div style="font-size:0.82rem;color:var(--dim)">La señal se desplaza lentamente con el tiempo, sin cambio real en el proceso</div>
+        <div class="ntag ntag-warn" style="margin-top:10px">MEDIA PRIORIDAD</div>
+      </div>
+      <div class="card" style="cursor:pointer;transition:all .2s;border-color:var(--border2)" onclick="startTree('noise')" onmouseover="this.style.borderColor='var(--warn)'" onmouseout="this.style.borderColor='var(--border2)'">
+        <div style="font-size:2rem;margin-bottom:8px">📡</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:var(--bright);margin-bottom:4px">Señal ruidosa / oscilatoria</div>
+        <div style="font-size:0.82rem;color:var(--dim)">La señal fluctúa rápidamente de forma irregular, no correlacionada con el proceso</div>
+        <div class="ntag ntag-warn" style="margin-top:10px">MEDIA PRIORIDAD</div>
+      </div>
+      <div class="card" style="cursor:pointer;transition:all .2s;border-color:var(--border2)" onclick="startTree('overrange')" onmouseover="this.style.borderColor='var(--warn)'" onmouseout="this.style.borderColor='var(--border2)'">
+        <div style="font-size:2rem;margin-bottom:8px">🔝</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:var(--bright);margin-bottom:4px">Overrange / Señal &gt; 20,5 mA</div>
+        <div style="font-size:0.82rem;color:var(--dim)">La señal supera el rango máximo — posible sobrepresión, inundación o fallo de sensor</div>
+        <div class="ntag ntag-warn" style="margin-top:10px">MEDIA PRIORIDAD</div>
+      </div>
+      <div class="card" style="cursor:pointer;transition:all .2s;border-color:var(--border2)" onclick="startTree('ph_error')" onmouseover="this.style.borderColor='var(--c-ph)'" onmouseout="this.style.borderColor='var(--border2)'">
+        <div style="font-size:2rem;margin-bottom:8px">⚗️</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:var(--bright);margin-bottom:4px">Error de sonda pH</div>
+        <div style="font-size:0.82rem;color:var(--dim)">Valores de pH inestables, fuera de rango esperado o sin respuesta a cambios en el proceso</div>
+        <div class="ntag ntag-etap" style="margin-top:10px">AGUA / PROCESO</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÁRBOL ACTIVO -->
+  <div class="mod-tab-content" id="tr-active">
+    <div id="tree-breadcrumb" class="tree-breadcrumb">—</div>
+    <div id="tree-container"></div>
+    <button class="btn btn-outline" style="margin-top:6px" onclick="resetTree()">← Volver a síntomas</button>
+  </div>
+
+</div><!-- /p-troubl -->
+
+
+<!-- ══════════════════════════════════════════
+     PAGE 5: PARÁMETROS DE PROCESO
+══════════════════════════════════════════ -->
+<div class="page" id="p-params">
+  <div class="page-header">
+    <div class="page-header-icon">📊</div>
+    <div class="page-header-text">
+      <h2>Parámetros de Proceso</h2>
+      <p>RANGOS TÍPICOS Y LÍMITES OPERACIONALES POR SECTOR</p>
+      <div class="sector-tags">
+        <span class="stag stag-edar">EDAR</span>
+        <span class="stag stag-etap">ETAP</span>
+        <span class="stag stag-ind">INDUSTRIAL</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="param-filter">
+    <span style="font-family:'Share Tech Mono',monospace;font-size:0.68rem;color:var(--dim);letter-spacing:0.1em;align-self:center">FILTRAR:</span>
+    <button class="filter-btn active" data-f="all" onclick="filterParams('all',this)">TODOS</button>
+    <button class="filter-btn" data-f="edar" onclick="filterParams('edar',this)">🟢 EDAR</button>
+    <button class="filter-btn" data-f="etap" onclick="filterParams('etap',this)">🔵 ETAP</button>
+    <button class="filter-btn" data-f="ind" onclick="filterParams('ind',this)">🟡 INDUSTRIAL</button>
+  </div>
+
+  <div id="params-container"></div>
+</div><!-- /p-params -->
+
+
+<!-- ══════════════════════════════════════════
+     PAGE 6: NORMATIVA
+══════════════════════════════════════════ -->
+<div class="page" id="p-norm">
+  <div class="page-header">
+    <div class="page-header-icon">📋</div>
+    <div class="page-header-text">
+      <h2>Normativa de Referencia</h2>
+      <p>LEGISLACIÓN Y NORMAS APLICABLES AL TRATAMIENTO DE AGUA</p>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <div class="card-title" style="color:var(--c-ph)">🇪🇺 Directivas Europeas</div>
+        <table class="norm-table">
+          <tr><th>Norma</th><th>Ámbito</th><th>Parámetros clave</th></tr>
+          <tr><td class="hl">Dir. 91/271/CEE</td><td>EDAR urbana</td><td>DBO₅ ≤ 25, DQO ≤ 125, SS ≤ 35 mg/L</td></tr>
+          <tr><td class="hl">Dir. 98/83/CE</td><td>Agua potable</td><td>pH 6,5–9,5, turbidez ≤ 1 UNF, color ≤ 15</td></tr>
+          <tr><td class="hl">Dir. 2000/60/CE</td><td>Marco agua</td><td>Estado ecológico cuerpos de agua</td></tr>
+          <tr><td class="hl">Dir. 2020/2184/UE</td><td>Agua consumo</td><td>Actualiza 98/83/CE — nuevos parámetros</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--c-flow)">🇪🇸 Normativa Española</div>
+        <table class="norm-table">
+          <tr><th>Norma</th><th>Descripción</th><th>Sector</th></tr>
+          <tr><td class="hl">RD 509/1996</td><td>Transpone 91/271/CEE — vertidos EDAR</td><td><span class="ntag ntag-edar">EDAR</span></td></tr>
+          <tr><td class="hl">RD 3/2023</td><td>Calidad agua consumo humano — deroga RD 140/2003</td><td><span class="ntag ntag-etap">ETAP</span></td></tr>
+          <tr><td class="hl">RD 1620/2007</td><td>Reutilización aguas depuradas</td><td><span class="ntag ntag-edar">EDAR</span></td></tr>
+          <tr><td class="hl">Ley 22/2011</td><td>Residuos y suelos contaminados</td><td><span class="ntag ntag-ind">IND</span></td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--c-cond)">📐 Normas ISO / EN aplicables</div>
+        <table class="norm-table">
+          <tr><th>Norma</th><th>Descripción</th></tr>
+          <tr><td class="hl">ISO 7027</td><td>Turbidez — método nefelométrico (FNU)</td></tr>
+          <tr><td class="hl">ISO 5667</td><td>Muestreo de aguas — guía general</td></tr>
+          <tr><td class="hl">ISO 10523</td><td>Determinación de pH</td></tr>
+          <tr><td class="hl">ISO 15839</td><td>Sensores en línea para agua — especificaciones</td></tr>
+          <tr><td class="hl">IEC 61511</td><td>Seguridad funcional en industria de proceso</td></tr>
+          <tr><td class="hl">EN 15267</td><td>Sistemas de medida en continuo de emisiones</td></tr>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title" style="color:var(--alarm)">🇪🇸 Límites RD 509/1996 — Vertidos EDAR</div>
+        <table class="norm-table">
+          <tr><th>Parámetro</th><th>Concentración</th><th>% Reducción</th></tr>
+          <tr><td>DBO₅ (sin nitrificación)</td><td class="hl">25 mg/L O₂</td><td>70–90%</td></tr>
+          <tr><td>DQO</td><td class="hl">125 mg/L O₂</td><td>75%</td></tr>
+          <tr><td>Sólidos en suspensión total</td><td class="hl">35 mg/L</td><td>90%</td></tr>
+          <tr><td>Nitrógeno total (> 100.000 he)</td><td class="hl">10 mg N/L</td><td>70–80%</td></tr>
+          <tr><td>Fósforo total (> 100.000 he)</td><td class="hl">1 mg P/L</td><td>80%</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--c-flow)">💧 Límites RD 3/2023 — Agua consumo</div>
+        <table class="norm-table">
+          <tr><th>Parámetro</th><th>Valor paramétrico</th></tr>
+          <tr><td>pH</td><td class="hl">6,5 – 9,5</td></tr>
+          <tr><td>Turbidez</td><td class="hl">≤ 1 UNF (ETAP salida)</td></tr>
+          <tr><td>Conductividad</td><td class="hl">≤ 2.500 µS/cm (20°C)</td></tr>
+          <tr><td>Cloro libre residual</td><td class="hl">0,2 – 1,0 mg/L</td></tr>
+          <tr><td>Amonio (NH₄⁺)</td><td class="hl">≤ 0,5 mg/L</td></tr>
+          <tr><td>Nitratos (NO₃⁻)</td><td class="hl">≤ 50 mg/L</td></tr>
+          <tr><td>Color</td><td class="hl">15 mg/L Pt/Co</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--c-cond)">🏭 Agua industrial de proceso (referencia)</div>
+        <table class="norm-table">
+          <tr><th>Uso</th><th>Parámetro</th><th>Límite orientativo</th></tr>
+          <tr><td>Agua de refrigeración</td><td>Conductividad</td><td class="hl">&lt; 3.000 µS/cm</td></tr>
+          <tr><td>Agua de caldera (baja P)</td><td>Cond. específica</td><td class="hl">&lt; 400 µS/cm</td></tr>
+          <tr><td>Agua calderas media P</td><td>Sólidos disueltos</td><td class="hl">&lt; 100 mg/L</td></tr>
+          <tr><td>Agua osmótica / desmineralizada</td><td>Conductividad</td><td class="hl">&lt; 10 µS/cm</td></tr>
+          <tr><td>Proceso alimentario (CIP)</td><td>pH post-limpieza</td><td class="hl">6,0 – 8,0</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div><!-- /p-norm -->
+
+</main><!-- /main -->
+
+<script>
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+const pageTitles = {
+  'p-ma':     ['Señales mA ↔ Proceso',   'CÁLCULO · 4-20 mA'],
+  'p-conv':   ['Conversión de Unidades', 'CONVERSIONES RÁPIDAS'],
+  'p-verif':  ['Verificación en Campo',  'PROCEDIMIENTOS · CHECK-LIST'],
+  'p-troubl': ['Troubleshooting',        'DIAGNÓSTICO INTERACTIVO'],
+  'p-params': ['Parámetros de Proceso',  'RANGOS Y LÍMITES'],
+  'p-norm':   ['Normativa de Referencia','LEGISLACIÓN Y NORMAS'],
+};
+
+function goPage(id, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  const [t, bc] = pageTitles[id] || ['',''];
+  document.getElementById('topbar-title').textContent = t;
+  document.getElementById('topbar-bc').textContent = bc;
+  if (window.innerWidth < 900) document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('tlabel').textContent = isDark ? 'CLARO' : 'OSCURO';
+}
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+const pv = v => Number(String(v).replace(',', '.'));
+const fmt = (v, d=2) => isNaN(v) || v===null ? '—' : v.toLocaleString('es-ES', {maximumFractionDigits: d});
+
+function baseCalc(sig, minV, maxV, dir, val) {
+  const minMA = sig==='0-20' ? 0 : 4;
+  const spanMA = sig==='0-20' ? 20 : 16;
+  let vp, mA, pct;
+  if (dir==='toVal') {
+    pct = (val - minMA) / spanMA;
+    vp  = minV + (maxV - minV) * pct;
+    mA  = val;
+  } else {
+    pct = (val - minV) / (maxV - minV);
+    mA  = minMA + pct * spanMA;
+    vp  = val;
+  }
+  return { vp, mA, pct, minMA, spanMA };
+}
+
+function signalStatus(sig, mA, elId) {
+  const el = document.getElementById(elId);
+  if (!el) return true;
+  if (sig === '4-20') {
+    if (mA < 3.6)  { el.innerHTML = "<span class='s-alarm'>⚠ ALARMA — Señal &lt; 3,6 mA · Cable roto o fallo de alimentación</span>"; return false; }
+    if (mA > 20.5) { el.innerHTML = "<span class='s-alarm'>⚠ ALARMA — Overrange &gt; 20,5 mA · Verificar sensor y LRV/URV</span>"; return false; }
+    if (mA >= 19.5){ el.innerHTML = "<span class='s-warn'>⚡ AVISO — Señal cerca de Overrange (" + fmt(mA,2) + " mA)</span>"; return true; }
+    if (mA <= 4.1) { el.innerHTML = "<span class='s-warn'>⚡ AVISO — Señal cerca de cero span (" + fmt(mA,2) + " mA)</span>"; return true; }
+  }
+  el.innerHTML = "<span class='s-ok'>✔ NORMAL · " + fmt(mA,3) + " mA</span>";
+  return true;
+}
+
+function setBar(numId, barId, pct) {
+  const p100 = Math.max(0, Math.min(100, pct * 100));
+  if (numId) document.getElementById(numId).textContent = fmt(p100,1) + ' %';
+  if (barId) document.getElementById(barId).style.width = p100 + '%';
+}
+
+// ═══════════════════════════════════════════════
+// CHART ENGINE
+// ═══════════════════════════════════════════════
+function drawChart(canvasId, mAval, minV, maxV, sig, color, unitY) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const W = canvas.offsetWidth || 500, H = 180;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const grid = isDark ? '#1c2e40' : '#d0dce8';
+  const axis = isDark ? '#243d54' : '#aac0d8';
+  const lbl  = isDark ? '#4a6878' : '#6080a0';
+  const bg   = isDark ? '#060c14' : '#f4f8fc';
+
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  const mx=52, my=14, pw=W-mx-14, ph=H-my-32;
+  const minMA = sig==='0-20'?0:4, spanMA = sig==='0-20'?20:16;
+
+  // grid lines
+  for (let i=0; i<=4; i++) {
+    const y = my + ph*(1-i/4);
+    ctx.strokeStyle=grid; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(mx,y); ctx.lineTo(mx+pw,y); ctx.stroke();
+    const v = minV + (maxV-minV)*(i/4);
+    ctx.fillStyle=lbl; ctx.font='10px Share Tech Mono'; ctx.fillText(fmt(v,1),2,y+4);
+  }
+  const maTicks = sig==='0-20' ? [0,5,10,15,20] : [4,8,12,16,20];
+  maTicks.forEach(m => {
+    const x = mx+pw*(m-minMA)/spanMA;
+    ctx.fillStyle=lbl; ctx.font='10px Share Tech Mono'; ctx.fillText(m, x-6, H-6);
+  });
+
+  ctx.strokeStyle=axis; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(mx,my); ctx.lineTo(mx,my+ph); ctx.lineTo(mx+pw,my+ph); ctx.stroke();
+
+  // fill
+  const cs = getComputedStyle(document.documentElement);
+  const resolvedColor = color.startsWith('var(') ? cs.getPropertyValue(color.slice(4,-1)).trim() : color;
+  ctx.fillStyle = resolvedColor + '18';
+  ctx.beginPath(); ctx.moveTo(mx,my+ph); ctx.lineTo(mx+pw,my); ctx.lineTo(mx+pw,my+ph); ctx.closePath(); ctx.fill();
+
+  ctx.strokeStyle = resolvedColor; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(mx,my+ph); ctx.lineTo(mx+pw,my); ctx.stroke();
+
+  const px = mx+pw*(mAval-minMA)/spanMA;
+  const pct = (mAval-minMA)/spanMA;
+  const py = my+ph*(1-pct);
+
+  ctx.fillStyle=resolvedColor+'28'; ctx.beginPath(); ctx.arc(px,py,14,0,2*Math.PI); ctx.fill();
+  ctx.fillStyle=resolvedColor+'60'; ctx.beginPath(); ctx.arc(px,py,8,0,2*Math.PI); ctx.fill();
+  ctx.fillStyle=resolvedColor;      ctx.beginPath(); ctx.arc(px,py,4,0,2*Math.PI); ctx.fill();
+
+  ctx.setLineDash([3,4]); ctx.strokeStyle=resolvedColor+'60'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(px,my+ph); ctx.lineTo(px,py); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(mx,py);    ctx.lineTo(px,py); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle=lbl; ctx.font='bold 10px Share Tech Mono';
+  ctx.fillText('mA →', mx+pw/2-16, H-1);
+  ctx.save(); ctx.translate(10, my+ph/2+20); ctx.rotate(-Math.PI/2);
+  ctx.fillText(unitY, 0, 0); ctx.restore();
+}
+
+// ═══════════════════════════════════════════════
+// mA CALC FUNCTIONS
+// ═══════════════════════════════════════════════
+const convF = {ls:1, m3h:1/3.6, m3d:1/86.4};  // m3h to L/s: 1m³/h = 1000/3600 L/s
+
+function calcFlow() {
+  const sig=document.getElementById('f-sig').value, unit=document.getElementById('f-unit').value;
+  const minV=pv(document.getElementById('f-min').value), maxV=pv(document.getElementById('f-max').value);
+  const dir=document.getElementById('f-dir').value, val=pv(document.getElementById('f-val').value);
+  if ([minV,maxV,val].some(isNaN)||maxV<=minV) return;
+  const cF = {ls:1, m3h:1000/3600, m3d:1000/86400};
+  const minLS=minV*cF[unit], maxLS=maxV*cF[unit];
+  const {vp:fLS, mA, pct} = baseCalc(sig, minLS, maxLS, dir, dir==='toVal'?val:val*cF[unit]);
+  if (!signalStatus(sig,mA,'f-status')) return;
+  document.getElementById('f-big').textContent = fmt(fLS/cF[unit],3);
+  document.getElementById('f-big-unit').textContent = unit==='ls'?'L/s':unit==='m3h'?'m³/h':'m³/día';
+  document.getElementById('f-big-ma').textContent = fmt(mA,3)+' mA';
+  document.getElementById('f-ls').textContent = fmt(fLS,4);
+  document.getElementById('f-m3h').textContent = fmt(fLS*3.6,3);
+  document.getElementById('f-m3d').textContent = fmt(fLS*86.4,1);
+  document.getElementById('f-pct').textContent = fmt(pct*100,2);
+  setBar('f-span-num','f-bar',pct);
+  drawChart('f-chart',mA,minLS,maxLS,sig,'var(--c-flow)','L/s');
+}
+function tRange(a,b,btn){document.getElementById('t-min').value=a;document.getElementById('t-max').value=b;document.querySelectorAll('#mt-turb .pill').forEach(x=>x.classList.remove('active'));btn.classList.add('active');}
+function calcTurb() {
+  const sig=document.getElementById('t-sig').value, unit=document.getElementById('t-unit-sel').value;
+  const minV=pv(document.getElementById('t-min').value), maxV=pv(document.getElementById('t-max').value);
+  const dir=document.getElementById('t-dir').value, val=pv(document.getElementById('t-val').value);
+  if ([minV,maxV,val].some(isNaN)||maxV<=minV) return;
+  const {vp:tv, mA, pct, minMA, spanMA} = baseCalc(sig,minV,maxV,dir,val);
+  if (!signalStatus(sig,mA,'t-status')) return;
+  document.getElementById('t-big').textContent=fmt(tv,3);
+  document.getElementById('t-big-unit').textContent=unit;
+  document.getElementById('t-big-ma').textContent=fmt(mA,3)+' mA';
+  setBar('t-span-num','t-bar',pct);
+  const fD=dir==='toVal';
+  document.getElementById('t-formula').textContent = fD
+    ?`Turbidez = LRV + (URV−LRV) × (mA−${minMA}) / ${spanMA}\n= ${fmt(minV,1)} + ${fmt(maxV-minV,1)} × (${fmt(val,3)}−${minMA}) / ${spanMA}\n= ${fmt(tv,4)} ${unit}\n% Span = ${fmt(pct*100,2)} %`
+    :`mA = ${minMA} + (val−LRV)/(URV−LRV) × ${spanMA}\n= ${minMA} + (${fmt(val,3)}−${fmt(minV,1)})/${fmt(maxV-minV,1)} × ${spanMA}\n= ${fmt(mA,4)} mA · % Span = ${fmt(pct*100,2)} %`;
+  drawChart('t-chart',mA,minV,maxV,sig,'var(--c-turb)',unit);
+}
+function phRange(a,b,btn){document.getElementById('ph-min').value=a;document.getElementById('ph-max').value=b;if(btn){document.querySelectorAll('#mt-ph .pill').forEach(x=>x.classList.remove('active'));btn.classList.add('active');}}
+function buildPhScale(){const s=document.getElementById('ph-scale-bar');if(!s)return;const c=[{c:'#d32f2f',w:7},{c:'#f57c00',w:7},{c:'#fbc02d',w:7},{c:'#689f38',w:7},{c:'#388e3c',w:14},{c:'#0288d1',w:21},{c:'#1565c0',w:21},{c:'#4a148c',w:16}];s.innerHTML=c.map(z=>`<div style="flex:${z.w};background:${z.c}40;border-right:1px solid ${z.c}30"></div>`).join('');}
+buildPhScale();
+function calcPH() {
+  const sig=document.getElementById('ph-sig').value;
+  const minV=pv(document.getElementById('ph-min').value), maxV=pv(document.getElementById('ph-max').value);
+  const dir=document.getElementById('ph-dir').value, val=pv(document.getElementById('ph-val').value);
+  if ([minV,maxV,val].some(isNaN)||maxV<=minV) return;
+  const {vp:phv, mA, pct} = baseCalc(sig,minV,maxV,dir,val);
+  if (!signalStatus(sig,mA,'ph-status')) return;
+  document.getElementById('ph-big').textContent=fmt(phv,2);
+  document.getElementById('ph-big-ma').textContent=fmt(mA,3)+' mA';
+  setBar('ph-span-num','ph-bar',pct);
+  document.getElementById('ph-marker').style.left=Math.max(0,Math.min(100,(phv/14)*100))+'%';
+  let zone,zc;
+  if(phv<3){zone='Muy ácido — Peligroso';zc='var(--alarm)';}
+  else if(phv<6){zone='Ácido — Fuera de rango EDAR';zc='var(--warn)';}
+  else if(phv<=9){zone='✔ Rango aceptable EDAR (6–9)';zc='var(--ok)';}
+  else if(phv<=11){zone='Básico — Vigilar';zc='var(--warn)';}
+  else{zone='Muy alcalino — Alarma';zc='var(--alarm)';}
+  document.getElementById('ph-zone').innerHTML=`<span style="color:${zc}">${zone}</span>`;
+  drawChart('ph-chart',mA,minV,maxV,sig,'var(--c-ph)','pH');
+}
+function teRange(a,b,btn){document.getElementById('te-min').value=a;document.getElementById('te-max').value=b;document.querySelectorAll('#mt-temp .pill').forEach(x=>x.classList.remove('active'));btn.classList.add('active');}
+function calcTemp() {
+  const sig=document.getElementById('te-sig').value, unit=document.getElementById('te-unit').value;
+  const minV=pv(document.getElementById('te-min').value), maxV=pv(document.getElementById('te-max').value);
+  const dir=document.getElementById('te-dir').value, val=pv(document.getElementById('te-val').value);
+  if ([minV,maxV,val].some(isNaN)||maxV<=minV) return;
+  const {vp:tv, mA, pct} = baseCalc(sig,minV,maxV,dir,val);
+  if (!signalStatus(sig,mA,'te-status')) return;
+  const tC = unit==='F'?(tv-32)*5/9:tv;
+  document.getElementById('te-big').textContent=fmt(tv,2);
+  document.getElementById('te-big-unit').textContent=unit==='F'?'°F':'°C';
+  document.getElementById('te-big-ma').textContent=fmt(mA,3)+' mA';
+  document.getElementById('te-c').textContent=fmt(tC,2);
+  document.getElementById('te-f').textContent=fmt(tC*9/5+32,2);
+  document.getElementById('te-k').textContent=fmt(tC+273.15,2);
+  document.getElementById('te-pct').textContent=fmt(pct*100,2);
+  setBar('te-span-num','te-bar',pct);
+  drawChart('te-chart',mA,minV,maxV,sig,'var(--c-temp)',unit==='F'?'°F':'°C');
+}
+function coRange(a,b,btn){document.getElementById('co-min').value=a;document.getElementById('co-max').value=b;document.querySelectorAll('#mt-cond .pill').forEach(x=>x.classList.remove('active'));btn.classList.add('active');}
+function calcCond() {
+  const sig=document.getElementById('co-sig').value, unit=document.getElementById('co-unit').value;
+  const minV=pv(document.getElementById('co-min').value), maxV=pv(document.getElementById('co-max').value);
+  const dir=document.getElementById('co-dir').value, val=pv(document.getElementById('co-val').value);
+  if ([minV,maxV,val].some(isNaN)||maxV<=minV) return;
+  const {vp:cv, mA, pct, minMA, spanMA} = baseCalc(sig,minV,maxV,dir,val);
+  if (!signalStatus(sig,mA,'co-status')) return;
+  const us = unit==='mS'?cv*1000:cv;
+  document.getElementById('co-big').textContent=fmt(cv,2);
+  document.getElementById('co-big-unit').textContent=unit==='mS'?'mS/cm':'µS/cm';
+  document.getElementById('co-big-ma').textContent=fmt(mA,3)+' mA';
+  document.getElementById('co-us').textContent=fmt(us,1);
+  document.getElementById('co-ms').textContent=fmt(us/1000,4);
+  document.getElementById('co-res').textContent=us>0?fmt(1000/us,3):'∞';
+  document.getElementById('co-tds').textContent=fmt(us*0.65,1);
+  setBar('co-span-num','co-bar',pct);
+  const fD=dir==='toVal';
+  document.getElementById('co-formula').textContent=fD
+    ?`Cond = LRV + (URV−LRV)×(mA−${minMA})/${spanMA}\n= ${fmt(cv,3)} ${unit==='mS'?'mS/cm':'µS/cm'}\nTDS ≈ ${fmt(us*0.65,1)} mg/L`
+    :`mA = ${minMA} + (val−LRV)/(URV−LRV)×${spanMA} = ${fmt(mA,4)} mA`;
+  drawChart('co-chart',mA,minV,maxV,sig,'var(--c-cond)',unit==='mS'?'mS/cm':'µS');
+}
+function prRange(a,b,btn){document.getElementById('pr-min').value=a;document.getElementById('pr-max').value=b;document.querySelectorAll('#mt-press .pill').forEach(x=>x.classList.remove('active'));btn.classList.add('active');}
+function calcPress() {
+  const sig=document.getElementById('pr-sig').value, unit=document.getElementById('pr-unit').value;
+  const minV=pv(document.getElementById('pr-min').value), maxV=pv(document.getElementById('pr-max').value);
+  const dir=document.getElementById('pr-dir').value, val=pv(document.getElementById('pr-val').value);
+  if ([minV,maxV,val].some(isNaN)||maxV<=minV) return;
+  const {vp:pres, mA, pct} = baseCalc(sig,minV,maxV,dir,val);
+  if (!signalStatus(sig,mA,'pr-status')) return;
+  // convert to bar
+  const toBar={bar:1,mbar:0.001,psi:0.0689476,kPa:0.01,mca:0.0980665};
+  const presBar = pres*(toBar[unit]||1);
+  document.getElementById('pr-big').textContent=fmt(pres,3);
+  document.getElementById('pr-big-unit').textContent=unit;
+  document.getElementById('pr-big-ma').textContent=fmt(mA,3)+' mA';
+  document.getElementById('pr-bar').textContent=fmt(presBar,4);
+  document.getElementById('pr-psi').textContent=fmt(presBar/0.0689476,3);
+  document.getElementById('pr-kpa').textContent=fmt(presBar*100,2);
+  document.getElementById('pr-mca').textContent=fmt(presBar/0.0980665,3);
+  setBar('pr-span-num','pr-bar-fill',pct);
+  drawChart('pr-chart',mA,minV,maxV,sig,'var(--c-press)',unit);
+}
+function doRange(a,b,btn){document.getElementById('do-min').value=a;document.getElementById('do-max').value=b;document.querySelectorAll('#mt-do .pill').forEach(x=>x.classList.remove('active'));btn.classList.add('active');}
+function calcDO() {
+  const sig=document.getElementById('do-sig').value, unit=document.getElementById('do-unit').value;
+  const minV=pv(document.getElementById('do-min').value), maxV=pv(document.getElementById('do-max').value);
+  const dir=document.getElementById('do-dir').value, val=pv(document.getElementById('do-val').value);
+  if ([minV,maxV,val].some(isNaN)||maxV<=minV) return;
+  const {vp:dov, mA, pct} = baseCalc(sig,minV,maxV,dir,val);
+  if (!signalStatus(sig,mA,'do-status')) return;
+  document.getElementById('do-big').textContent=fmt(dov,2);
+  document.getElementById('do-big-unit').textContent=unit==='mgl'?'mg/L':'% Sat';
+  document.getElementById('do-big-ma').textContent=fmt(mA,3)+' mA';
+  setBar('do-span-num','do-bar',pct);
+  drawChart('do-chart',mA,minV,maxV,sig,'var(--c-do)',unit==='mgl'?'mg/L':'%Sat');
+}
+
+// ═══════════════════════════════════════════════
+// MODULE TABS
+// ═══════════════════════════════════════════════
+function maTab(id, btn) {
+  document.querySelectorAll('#p-ma .mod-tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('#p-ma .mod-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+function convTab(id, btn) {
+  document.querySelectorAll('#p-conv .mod-tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('#p-conv .mod-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  // trigger calculations on switch
+  if(id==='cv-flow') convFlow();
+  if(id==='cv-press') convPress();
+  if(id==='cv-temp') convTemp();
+  if(id==='cv-cond') convCond();
+  if(id==='cv-conc') convConc();
+}
+function verifTab(id, btn) {
+  document.querySelectorAll('#p-verif .mod-tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('#p-verif .mod-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════
+// UNIT CONVERSIONS
+// ═══════════════════════════════════════════════
+function convFlow() {
+  const val=pv(document.getElementById('cv-f-val').value);
+  const from=document.getElementById('cv-f-from').value;
+  if (isNaN(val)) return;
+  const toLS={ls:1,lm:1/60,lh:1/3600,m3h:1000/3600,m3d:1000/86400,gpm:3.78541/60,m3s:1000};
+  const ls = val * (toLS[from]||1);
+  const units=[['L/s',ls],['L/min',ls*60],['L/h',ls*3600],['m³/h',ls*3.6],['m³/día',ls*86.4],['m³/s',ls/1000],['GPM (US)',ls*15.8503]];
+  document.getElementById('cv-f-result').textContent = fmt(ls,4)+' L/s';
+  document.getElementById('cv-f-table').innerHTML='<tr><th>Unidad</th><th>Valor</th></tr>'+units.map(([u,v])=>`<tr><td>${u}</td><td class="hl">${fmt(v,5)}</td></tr>`).join('');
+}
+function convPress() {
+  const val=pv(document.getElementById('cv-p-val').value);
+  const from=document.getElementById('cv-p-from').value;
+  if (isNaN(val)) return;
+  const toBar={bar:1,mbar:0.001,psi:0.0689476,kPa:0.01,MPa:10,atm:1.01325,mca:0.0980665,mmHg:0.00133322};
+  const bar = val*(toBar[from]||1);
+  const units=[['bar',bar],['mbar',bar*1000],['psi',bar/0.0689476],['kPa',bar*100],['MPa',bar/10],['atm',bar/1.01325],['m.c.a.',bar/0.0980665],['mmHg',bar/0.00133322]];
+  document.getElementById('cv-p-result').textContent = fmt(bar,6)+' bar';
+  document.getElementById('cv-p-table').innerHTML='<tr><th>Unidad</th><th>Valor</th></tr>'+units.map(([u,v])=>`<tr><td>${u}</td><td class="hl">${fmt(v,5)}</td></tr>`).join('');
+}
+function convTemp() {
+  const val=pv(document.getElementById('cv-t-val').value);
+  const from=document.getElementById('cv-t-from').value;
+  if (isNaN(val)) return;
+  let tC;
+  if(from==='C') tC=val;
+  else if(from==='F') tC=(val-32)*5/9;
+  else tC=val-273.15;
+  const units=[['°C (Celsius)',tC],['°F (Fahrenheit)',tC*9/5+32],['K (Kelvin)',tC+273.15]];
+  document.getElementById('cv-t-result').textContent = fmt(tC,3)+' °C';
+  document.getElementById('cv-t-table').innerHTML='<tr><th>Unidad</th><th>Valor</th></tr>'+units.map(([u,v])=>`<tr><td>${u}</td><td class="hl">${fmt(v,4)}</td></tr>`).join('');
+}
+function convCond() {
+  const val=pv(document.getElementById('cv-c-val').value);
+  if (isNaN(val)||val<=0) return;
+  const us=val, ms=val/1000, res=1000/val, tds_nacl=val*0.65, tds_kcl=val*0.55;
+  document.getElementById('cv-c-result').textContent = fmt(us,2)+' µS/cm';
+  document.getElementById('cv-c-table').innerHTML=`<tr><th>Magnitud</th><th>Valor</th></tr>
+    <tr><td>Conductividad</td><td class="hl">${fmt(us,2)} µS/cm</td></tr>
+    <tr><td>Conductividad</td><td class="hl">${fmt(ms,4)} mS/cm</td></tr>
+    <tr><td>Resistividad específica</td><td class="hl">${fmt(res,3)} kΩ·cm</td></tr>
+    <tr><td>TDS aprox. (NaCl)</td><td class="hl">${fmt(tds_nacl,1)} mg/L</td></tr>
+    <tr><td>TDS aprox. (KCl)</td><td class="hl">${fmt(tds_kcl,1)} mg/L</td></tr>`;
+}
+function convConc() {
+  const ppm=pv(document.getElementById('cv-cc-ppm').value);
+  const q=pv(document.getElementById('cv-cc-q').value);
+  const sol=pv(document.getElementById('cv-cc-sol').value);
+  if([ppm,q,sol].some(isNaN)||sol<=0) return;
+  // Q_dos (L/h) = ppm × Q(m3/h) × 1000 / (sol% × 10000)
+  const qdos_lh = (ppm * q * 1000) / (sol * 10000);
+  const qdos_lmin = qdos_lh/60, qdos_mlmin = qdos_lmin*1000;
+  document.getElementById('cv-cc-result').textContent = fmt(qdos_mlmin,2)+' mL/min';
+  document.getElementById('cv-cc-table').innerHTML=`<tr><th>Caudal dosificación</th><th>Valor</th></tr>
+    <tr><td>mL/min</td><td class="hl">${fmt(qdos_mlmin,2)}</td></tr>
+    <tr><td>L/h</td><td class="hl">${fmt(qdos_lh,3)}</td></tr>
+    <tr><td>L/día</td><td class="hl">${fmt(qdos_lh*24,2)}</td></tr>
+    <tr><td>kg/día (ρ≈1)</td><td class="hl">${fmt(qdos_lh*24*sol/100,3)}</td></tr>`;
+}
+
+// Initialize conversions
+convFlow(); convPress(); convTemp(); convCond(); convConc();
+
+// ═══════════════════════════════════════════════
+// VERIFICATION PROCEDURES
+// ═══════════════════════════════════════════════
+const stepsLoop = [
+  {title:'Comunicar intervención al operador', desc:'Informar al operador de control que se realizará prueba de lazo. Si el instrumento está en lazo de control automático, solicitar pasar a MANUAL.', code:'MODO: MANUAL en DCS/PLC antes de intervenir'},
+  {title:'Identificar bornes del transmisor', desc:'Localizar los bornes 1 (+) y 2 (−) de salida de corriente 4–20 mA. Verificar el diagrama de conexionado del instrumento.', code:'Borne + → DCS/AI+\nBorne − → DCS/AI−'},
+  {title:'Insertar multímetro en serie', desc:'Romper el lazo en uno de los conductores. Conectar el multímetro en serie con selector en mA DC. El multímetro completa el circuito.', code:'Selector: A DC (o mA DC)\n⚠ NUNCA conectar en paralelo'},
+  {title:'Simular 4 mA (0% span)', desc:'Usar simulador de lazo (Fluke 707, etc.) para inyectar 4 mA. Verificar lectura en DCS = LRV (0%). Registrar mA medido.', code:'Esperado en DCS: LRV (0%)\nTolerancias clase B: ± 0,08 mA'},
+  {title:'Simular 12 mA (50% span)', desc:'Inyectar 12 mA. Verificar lectura en DCS = 50% del span. Registrar valor.', code:'Esperado en DCS: 50% de (URV−LRV)'},
+  {title:'Simular 20 mA (100% span)', desc:'Inyectar 20 mA. Verificar lectura en DCS = URV (100%). Registrar valor.', code:'Esperado en DCS: URV (100%)'},
+  {title:'Verificar alarmas NAMUR NE43', desc:'Simular señal de fallo: 3,5 mA (fallo bajo) y 21,5 mA (fallo alto). Verificar que el sistema genera alarma.', code:'Alarma baja: < 3,8 mA\nAlarma alta: > 20,5 mA'},
+  {title:'Reconectar y documentar', desc:'Reconectar el lazo en su configuración original. Verificar lectura del proceso en DCS. Completar registro de verificación con fecha, técnico y resultados.', code:'Registrar: fecha, instrumento, TAG, resultados'}
+];
+
+const stepsZero = [
+  {title:'Preparar soluciones patrón', desc:'Verificar vigencia y temperatura de las soluciones patrón. Registrar número de lote, fecha de caducidad y temperatura actual.', code:'T° solución ≈ T° proceso (±5°C)\nRegistrar: Lote, Cad., T°'},
+  {title:'Enjuagar el sensor', desc:'Retirar el sensor del proceso. Enjuagar con agua destilada o desionizada. Secar con papel libre de pelusa.'},
+  {title:'Verificación en cero (solución de LRV)', desc:'Sumergir el sensor en la solución patrón que corresponde al LRV configurado. Esperar estabilización (1–3 min). Registrar lectura.', code:'Estabilización: señal ±0,02% FS en 30s'},
+  {title:'Ajuste de Zero si necesario', desc:'Si el error supera el criterio de aceptación, proceder al ajuste de Zero según el procedimiento del fabricante. Registrar valor antes y después.'},
+  {title:'Verificación en Span (solución de URV o midscale)', desc:'Sumergir en solución patrón del URV o de punto medio. Esperar estabilización. Registrar lectura.', code:'Calcular error: (Leído−Patrón)/Rango×100%'},
+  {title:'Ajuste de Span si necesario', desc:'Si el error supera el criterio, ajustar Span. El ajuste de Span puede requerir re-verificar el Zero.'},
+  {title:'Enjuague final y reinstalación', desc:'Enjuagar el sensor con agua de proceso o destilada. Reinstalar en el punto de medición. Verificar estanqueidad.'},
+  {title:'Documentar y firmar', desc:'Completar hoja de calibración con: patrón utilizado, lecturas antes/después, ajuste realizado, firma del técnico.', code:'Registrar en GMAO/sistema de calibración'}
+];
+
+const stepsMulti = [
+  {title:'Seleccionar el modo correcto en el multímetro', desc:'Girar el selector a la posición A DC (o mA DC para rangos mA). NUNCA usar la posición V para medir corriente.', code:'Selector: A DC\nRango: 200 mA o autorange'},
+  {title:'Identificar el punto de medición', desc:'Localizar la caja de bornes del transmisor. Identificar los conductores del lazo 4–20 mA usando el diagrama P&ID o el manual del instrumento.'},
+  {title:'Romper el lazo para medición en serie', desc:'Desconectar uno de los conductores del borne. Conectar el rojo del multímetro al punto de mayor potencial (+24V side) y el negro al conductor desconectado.', code:'Conexión: +24V → [COM multímetro] → borne transmisor'},
+  {title:'Leer y registrar', desc:'Leer el valor mA con el proceso estabilizado. Calcular el valor de proceso equivalente usando la fórmula o la calculadora del módulo 1.', code:'PV = LRV + (mA−4)/16 × (URV−LRV)'},
+  {title:'Reconectar y verificar', desc:'Reconectar el conductor. Verificar que la lectura en el DCS/indicador recupera el valor de proceso. Anojar cualquier discrepancia.'}
+];
+
+const stepsEMF = [
+  {title:'Verificar pre-requisitos', desc:'Confirmar que el tubo está COMPLETAMENTE lleno de líquido. Verificar ausencia de burbujas. El líquido debe ser conductor (≥ 5 µS/cm).', code:'Conductividad mínima: 5 µS/cm (típico agua)'},
+  {title:'Conectar herramienta de calibración', desc:'Conectar el simulador de proceso (o sistema de calibración certificado) a la entrada del transmisor. Para verificación de salida, conectar multímetro en serie en el lazo 4–20 mA.'},
+  {title:'Verificar ajuste de cero con caudal cero', desc:'Parar el caudal completamente (cerrar válvula). El instrumento debe indicar 0 L/s y la señal debe ser 4,000 mA ± tolerancia.', code:'mA esperado (Q=0): 4,000 mA\nTolerancias: ± 0,5% del span'},
+  {title:'Verificar a caudal de 50% span', desc:'Establecer caudal a 50% del rango configurado. Verificar que la señal mA = 12,000 mA ± tolerancia. Comparar con medición de referencia.', code:'mA esperado (50%): 12,000 mA'},
+  {title:'Verificar a caudal de 100% span (si posible)', desc:'Establecer caudal máximo según condiciones de planta. Verificar señal 20,000 mA ± tolerancia.', code:'mA esperado (100%): 20,000 mA'},
+  {title:'Verificar totalización', desc:'Comparar el totalizador del instrumento con una medición de referencia (tanque gravimétrico, medidor portátil). Calcular error porcentual.'},
+  {title:'Documentar y etiquetar', desc:'Registrar todos los valores. Colocar etiqueta de verificación con fecha, próxima verificación y firma del técnico.'}
+];
+
+const stepsPH = [
+  {title:'Preparar materiales y EPIs', desc:'Preparar: soluciones tampón pH 4, 7 y 10 (o según rango de proceso). Agua destilada para enjuague. Guantes de nitrilo, gafas de seguridad.', code:'EPIs: guantes + gafas\nSoluciones: caducidad vigente'},
+  {title:'Retirar y enjuagar el electrodo', desc:'Retirar el electrodo del proceso. Enjuagar cuidadosamente con agua destilada. NO frotar la membrana de vidrio.', code:'⚠ NO frotar membrana de vidrio'},
+  {title:'Verificar en buffer pH 7 (punto neutro)', desc:'Sumergir en buffer pH 7,00. Esperar estabilización (2–5 min). Registrar lectura del transmisor vs. valor esperado.', code:'Estabilización: ±0,02 pH en 1 min'},
+  {title:'Enjuague y verificación en buffer pH 4', desc:'Enjuagar con agua destilada. Sumergir en buffer pH 4,00. Esperar estabilización. Registrar.', code:'Error máx. aceptable clase B: ±0,05 pH'},
+  {title:'Calcular pendiente del electrodo', desc:'Usar la calculadora de pendiente disponible en este módulo. Una pendiente entre 95–105% indica electrodo en buen estado.', code:'Pendiente (%) = (V7−V4) / (59,16 × 3) × 100'},
+  {title:'Calibrar si es necesario', desc:'Si el error supera el criterio, realizar calibración de 2 puntos en el transmisor siguiendo el procedimiento del fabricante (Memosens, Liquiline, etc.).'},
+  {title:'Reinstalar y verificar en proceso', desc:'Enjuagar el electrodo con agua de proceso. Reinstalar. Verificar que la lectura es coherente con el proceso y registrar tiempo de respuesta.'},
+  {title:'Documentar', desc:'Registrar fecha, buffers usados (lote), pendiente calculada, errores antes/después de calibración, firma.', code:'Próxima verificación: según frecuencia de planta'}
+];
+
+function renderSteps(containerId, stepsData) {
+  const container = document.getElementById(containerId);
+  let activeIdx = 0;
+  function render() {
+    container.innerHTML = stepsData.map((s, i) => {
+      const done = i < activeIdx;
+      const active = i === activeIdx;
+      return `<div class="step-card ${done?'done':''} ${active?'active-step':''}" onclick="advStep(${i},'${containerId}',${stepsData.length})">
+        <div class="step-num">${done?'✓':i+1}</div>
+        <div class="step-body">
+          <div class="step-title">${s.title}</div>
+          <div class="step-desc">${s.desc}</div>
+          ${s.code?`<div class="step-code">${s.code}</div>`:''}
+        </div>
+        <div class="step-check">${done?'✓':''}</div>
+      </div>`;
+    }).join('');
+    // Update progress
+    const prog = activeIdx/stepsData.length*100;
+    if (!container.nextElementSibling || !container.nextElementSibling.classList.contains('step-prog')) {
+      const progDiv = document.createElement('div');
+      progDiv.className = 'step-prog';
+      progDiv.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--dim);margin-bottom:4px;letter-spacing:0.1em">PROGRESO: ${activeIdx}/${stepsData.length}</div><div class="bar-bg"><div class="bar-fill" style="width:${prog}%;background:var(--ok)"></div></div>`;
+      container.parentNode.insertBefore(progDiv, container.nextSibling);
+    } else {
+      container.nextElementSibling.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--dim);margin-bottom:4px;letter-spacing:0.1em">PROGRESO: ${activeIdx}/${stepsData.length}</div><div class="bar-bg"><div class="bar-fill" style="width:${prog}%;background:var(--ok)"></div></div>`;
+    }
+  }
+  window['advStep'] = function(i, cId, total) {
+    if (cId !== containerId) return;
+    if (i >= activeIdx) activeIdx = i+1;
+    if (activeIdx > total) activeIdx = total;
+    render();
+  };
+  window['resetSteps'] = function(cId, data, fn) {
+    if (cId !== containerId) { fn(cId, data); return; }
+    activeIdx = 0; render();
+  };
+  render();
+}
+
+renderSteps('steps-loop', stepsLoop, renderSteps);
+renderSteps('steps-zero', stepsZero, renderSteps);
+renderSteps('steps-multi', stepsMulti, renderSteps);
+renderSteps('steps-emf',  stepsEMF,  renderSteps);
+renderSteps('steps-ph',   stepsPH,   renderSteps);
+
+// ═══════════════════════════════════════════════
+// LOOP ERROR CALCULATOR
+// ═══════════════════════════════════════════════
+function calcLoopError() {
+  const nominal=pv(document.getElementById('vl-nominal').value);
+  const medida=pv(document.getElementById('vl-medida').value);
+  const span=pv(document.getElementById('vl-span').value);
+  const clase=pv(document.getElementById('vl-clase').value);
+  if ([nominal,medida,span,clase].some(isNaN)||span<=0) return;
+  const errMA = Math.abs(medida - nominal);
+  const errPct = (errMA / span) * 100;
+  const accept = clase;
+  const ok = errPct <= accept;
+  const color = ok ? 'var(--ok)' : 'var(--alarm)';
+  document.getElementById('loop-error-result').innerHTML=`
+    <div class="card" style="border-color:${color}">
+      <div class="r-grid">
+        <div class="r-cell"><div class="rl">Error absoluto</div><div class="rv" style="color:${color}">${fmt(errMA,4)}</div><div class="ru">mA</div></div>
+        <div class="r-cell"><div class="rl">Error % FS</div><div class="rv" style="color:${color}">${fmt(errPct,3)}</div><div class="ru">%</div></div>
+        <div class="r-cell"><div class="rl">Límite clase</div><div class="rv">±${fmt(accept,2)}</div><div class="ru">% FS</div></div>
+        <div class="r-cell"><div class="rl">Resultado</div><div class="rv" style="color:${color}">${ok?'✔ OK':'✘ FALLA'}</div></div>
+      </div>
+    </div>`;
+}
+calcLoopError();
+
+function calcZSError() {
+  const patron=pv(document.getElementById('zs-patron').value);
+  const leido=pv(document.getElementById('zs-leido').value);
+  const rango=pv(document.getElementById('zs-rango').value);
+  const incert=pv(document.getElementById('zs-incert').value);
+  if ([patron,leido,rango].some(isNaN)||rango<=0) return;
+  const errAbs = Math.abs(leido-patron);
+  const errPct = (errAbs/rango)*100;
+  const ok = errPct <= 0.5;
+  const color = errPct<=0.1?'var(--ok)':errPct<=0.5?'var(--warn)':'var(--alarm)';
+  document.getElementById('zs-error-result').innerHTML=`
+    <div class="card" style="border-color:${color}">
+      <div class="r-grid">
+        <div class="r-cell"><div class="rl">Error absoluto</div><div class="rv" style="color:${color}">${fmt(errAbs,4)}</div></div>
+        <div class="r-cell"><div class="rl">Error % FS</div><div class="rv" style="color:${color}">${fmt(errPct,3)}</div><div class="ru">%</div></div>
+        <div class="r-cell"><div class="rl">Incert. patrón</div><div class="rv">±${fmt(incert,3)}</div></div>
+        <div class="r-cell"><div class="rl">Clase estimada</div><div class="rv" style="color:${color}">${errPct<=0.1?'A':errPct<=0.5?'B':errPct<=1?'C':'D'}</div></div>
+      </div>
+    </div>`;
+}
+calcZSError();
+
+function calcVtoMA() {
+  const v=pv(document.getElementById('mm-v').value);
+  const r=pv(document.getElementById('mm-r').value);
+  if (isNaN(v)||isNaN(r)||r<=0) return;
+  const mA = (v/r)*1000;
+  const pct = (mA-4)/16*100;
+  const ok = mA>=4 && mA<=20;
+  document.getElementById('mm-result').textContent = fmt(mA,3)+' mA'+(ok?' ('+fmt(pct,1)+'% span)':'');
+}
+calcVtoMA();
+
+function calcPhSlope() {
+  const v4=pv(document.getElementById('ph-v4').value);
+  const v7=pv(document.getElementById('ph-v7').value);
+  if ([v4,v7].some(isNaN)) return;
+  const theoretical = 59.16 * 3; // mV for 3 pH units at 25°C
+  const actual = Math.abs(v4 - v7);
+  const slope_pct = (actual / theoretical) * 100;
+  const mv_ph = actual / 3;
+  const color = slope_pct>=95&&slope_pct<=105?'var(--ok)':slope_pct>=90&&slope_pct<=110?'var(--warn)':'var(--alarm)';
+  document.getElementById('ph-slope-result').innerHTML=`
+    <div class="card" style="border-color:${color}">
+      <div class="r-grid">
+        <div class="r-cell"><div class="rl">Pendiente real</div><div class="rv" style="color:${color}">${fmt(mv_ph,2)}</div><div class="ru">mV/pH</div></div>
+        <div class="r-cell"><div class="rl">Pendiente %</div><div class="rv" style="color:${color}">${fmt(slope_pct,1)}</div><div class="ru">%</div></div>
+        <div class="r-cell"><div class="rl">Teórica (25°C)</div><div class="rv">59,16</div><div class="ru">mV/pH</div></div>
+        <div class="r-cell"><div class="rl">Estado</div><div class="rv" style="color:${color}">${slope_pct>=95&&slope_pct<=105?'✔ ÓPTIMO':slope_pct>=90&&slope_pct<=110?'⚡ ACEPTABLE':'✘ REEMPLAZAR'}</div></div>
+      </div>
+      <div class="info-box ${slope_pct>=95&&slope_pct<=105?'info-ok':slope_pct>=90&&slope_pct<=110?'info-warn':'info-alarm'}" style="margin-top:10px">
+        ${slope_pct>=95&&slope_pct<=105?'Electrodo en excelente estado. Calibración recomendada cada mes.':
+          slope_pct>=90&&slope_pct<=110?'Electrodo aceptable. Calibrar más frecuentemente. Planificar sustitución.':
+          'Electrodo degradado. Pendiente fuera de rango. Sustituir el electrodo.'}
+      </div>
+    </div>`;
+}
+calcPhSlope();
+
+function calcEMFcheck() {
+  const lrv=pv(document.getElementById('emf-lrv').value);
+  const urv=pv(document.getElementById('emf-urv').value);
+  const sim=pv(document.getElementById('emf-sim').value);
+  const measured=pv(document.getElementById('emf-measured').value);
+  if ([lrv,urv,sim].some(isNaN)||urv<=lrv) return;
+  const pct = (sim-lrv)/(urv-lrv);
+  const expectedMA = 4 + pct*16;
+  document.getElementById('emf-expected').textContent = fmt(expectedMA,3)+' mA';
+  if (!isNaN(measured)) {
+    const errMA=Math.abs(measured-expectedMA), errPct=(errMA/16)*100;
+    const ok=errPct<=0.5;
+    const color=ok?'var(--ok)':'var(--alarm)';
+    document.getElementById('emf-result').innerHTML=`
+      <div class="r-grid">
+        <div class="r-cell"><div class="rl">Error mA</div><div class="rv" style="color:${color}">${fmt(errMA,4)}</div></div>
+        <div class="r-cell"><div class="rl">Error % span</div><div class="rv" style="color:${color}">${fmt(errPct,3)}</div><div class="ru">%</div></div>
+        <div class="r-cell" style="grid-column:span 2"><div class="rl">Resultado</div><div class="rv" style="color:${color}">${ok?'✔ DENTRO DE TOLERANCIA':'✘ FUERA DE TOLERANCIA (> 0,5%)'}</div></div>
+      </div>`;
+  }
+}
+calcEMFcheck();
+
+// ═══════════════════════════════════════════════
+// TROUBLESHOOTING TREES
+// ═══════════════════════════════════════════════
+const trees = {
+  signal_fixed: {
+    start: 'q1',
+    nodes: {
+      q1: { q:'¿La señal mA es exactamente 4 mA, exactamente 20 mA, o algún otro valor fijo?', opts:[
+        {text:'Exactamente 4 mA (LRV)', next:'q2'},
+        {text:'Exactamente 20 mA (URV)', next:'q3'},
+        {text:'Valor fijo distinto de 4 o 20 mA', next:'q4'},
+      ]},
+      q2: { q:'Con señal fija en 4 mA, ¿hay alimentación eléctrica (24 VDC) al transmisor?', opts:[
+        {text:'SÍ, hay alimentación correcta', next:'q2a'},
+        {text:'NO, o la tensión es incorrecta', next:'c_power'},
+        {text:'No puedo verificar la alimentación', next:'c_check_power'},
+      ]},
+      q2a: { q:'¿El transmisor muestra indicación local (display o LED)?', opts:[
+        {text:'SÍ, display muestra proceso pero sale 4 mA', next:'c_wiring'},
+        {text:'SÍ, display muestra código de fallo o error', next:'c_faultcode'},
+        {text:'NO, sin indicación local alguna', next:'c_power'},
+      ]},
+      q3: { q:'Con señal fija en 20 mA, ¿el proceso puede estar realmente en máximo (URV)?', opts:[
+        {text:'NO, el proceso es mucho menor que el URV', next:'q3a'},
+        {text:'SÍ, el proceso podría estar en máximo', next:'c_process_check'},
+        {text:'El proceso no es medible / punto de medición inaccesible', next:'c_sensor_stuck'},
+      ]},
+      q3a: { q:'¿El display del transmisor también muestra valor máximo?', opts:[
+        {text:'SÍ, display muestra URV o saturación', next:'c_sensor_stuck'},
+        {text:'NO, display muestra un valor normal intermedio', next:'c_wiring'},
+        {text:'Display muestra código de fallo (F-xxx)', next:'c_faultcode'},
+      ]},
+      q4: { q:'¿Cuándo empezó el problema? ¿Hubo algún cambio previo?', opts:[
+        {text:'Tras mantenimiento o trabajo eléctrico', next:'c_wiring'},
+        {text:'Tras actualización de parámetros / programación', next:'c_config'},
+        {text:'Sin cambios conocidos, de forma gradual', next:'c_drift_sensor'},
+        {text:'De forma repentina', next:'c_sudden'},
+      ]},
+      c_power: { type:'conc', cls:'conc-alarm', title:'⚡ Fallo de alimentación', items:['Verificar fuente 24 VDC en bornes de alimentación del transmisor','Comprobar continuidad del cable de alimentación','Verificar fusibles del cuadro de campo','Comprobar caída de tensión en el lazo (máx. aceptable 18V @ 20mA = 360Ω carga)', 'Si la tensión es correcta pero el transmisor no arranca: posible avería interna — contactar servicio técnico'] },
+      c_check_power: { type:'conc', cls:'conc-info', title:'📌 Verificar alimentación eléctrica', items:['Usar multímetro en V DC entre bornes de alimentación','Valor esperado: 18–36 VDC (típico 24 VDC)','Si no hay acceso seguro, coordinar con el electricista de planta','Documentar la tensión medida para el informe de fallo'] },
+      c_wiring: { type:'conc', cls:'conc-warn', title:'🔌 Posible problema de cableado o conexiones', items:['Verificar apriete de bornes en caja de conexiones del transmisor','Comprobar continuidad del cable con multímetro (par y blindaje)','Buscar corrosión, humedad o daño mecánico en conectores','Verificar que el lazo no está en cortocircuito ni abierto','En cabinas DCS/PLC: verificar el borne de entrada AI correspondiente al TAG'] },
+      c_faultcode: { type:'conc', cls:'conc-warn', title:'🛑 Código de fallo activo — Acción según fabricante', items:['Anotar el código exacto del display (ej. F042, S044, C101)','Consultar manual del instrumento para el significado específico','Para E+H Promag/Liquiline: ir al módulo de referencia o ver tabla en esta app','Para Siemens SITRANS: consultar Operating Instructions del modelo','Los fallos F (Failure) requieren acción inmediata; S (Service) son avisos'] },
+      c_config: { type:'conc', cls:'conc-info', title:'⚙ Verificar configuración / parámetros', items:['Conectar herramienta de configuración (FieldCare, HART communicator, etc.)','Verificar LRV y URV — que sean los valores correctos de proceso','Verificar modo de salida de corriente (modo fallo, supresión de cero)','Verificar si está activado el modo de simulación o test','Comparar con la última configuración documentada (datasheet)'] },
+      c_sensor_stuck: { type:'conc', cls:'conc-alarm', title:'🔴 Posible sensor bloqueado o dañado', items:['Verificar físicamente el elemento sensor (incrustaciones, ensuciamiento, daño mecánico)','Para caudalímetros EM: verificar que el tubo está lleno y el sensor no está ensuciado','Para sondas pH/OD: verificar estado del electrodo y membrana','Comparar con instrumento de referencia portátil si posible','Si el sensor no responde a cambios conocidos del proceso: probable fallo de sensor'] },
+      c_process_check: { type:'conc', cls:'conc-ok', title:'✔ Verificar condición real del proceso', items:['Confirmar con el operador el estado real del proceso en ese punto','Comparar con otros instrumentos del mismo punto de medición','Verificar condición upstream: válvulas, by-passes, proceso anormal','Si el proceso realmente está en URV, la señal de 20 mA es correcta','Registrar la condición de proceso para el informe'] },
+      c_drift_sensor: { type:'conc', cls:'conc-warn', title:'📉 Deriva gradual del sensor', items:['Retirar y limpiar el sensor (incrustaciones, biofilm, depósitos)','Verificar temperatura del proceso — la deriva puede ser compensación T° inadecuada','Para sensores analíticos (pH, OD): verificar estado del electrodo, calibrar','Para instrumentos físicos: verificar obstrucción parcial o desgaste mecánico','Programar mantenimiento preventivo de limpieza y calibración'] },
+      c_sudden: { type:'conc', cls:'conc-alarm', title:'⚡ Fallo repentino — diagnóstico rápido', items:['1. Verificar alimentación 24 VDC en bornes del transmisor','2. Medir mA en bornes de salida del transmisor con multímetro','3. Si transmite pero DCS no lee: problema en cable o terminación DCS','4. Si no transmite: verificar display — código de error → avería interna','5. Reemplazar transmisor temporalmente por spare si es proceso crítico'] },
+    }
+  },
+  no_signal: {
+    start: 'q1',
+    nodes: {
+      q1: { q:'¿Qué indica el multímetro en el lazo 4–20 mA?', opts:[
+        {text:'0 mA o menos de 1 mA', next:'q2'},
+        {text:'Entre 1 y 3,5 mA', next:'q3'},
+        {text:'Sin lectura / circuito abierto', next:'q4'},
+      ]},
+      q2: { q:'¿Hay 24 VDC de alimentación en los bornes del transmisor?', opts:[
+        {text:'SÍ, hay 24 VDC correcto', next:'c_tx_dead'},
+        {text:'NO, 0 V o valor incorrecto', next:'c_no_power'},
+        {text:'Tensión muy baja (< 12 VDC)', next:'c_low_voltage'},
+      ]},
+      q3: { q:'Una señal de 1–3,5 mA indica modo de fallo NAMUR. ¿El transmisor tiene display activo?', opts:[
+        {text:'SÍ, display muestra código de fallo', next:'c_faultcode_lo'},
+        {text:'NO, sin indicación local', next:'c_no_power'},
+      ]},
+      q4: { q:'Circuito abierto — ¿El cable llega físicamente hasta el transmisor?', opts:[
+        {text:'SÍ, cable accesible y aparentemente íntegro', next:'c_open_loop'},
+        {text:'NO, el cable puede estar dañado', next:'c_cable_damage'},
+      ]},
+      c_tx_dead: { type:'conc', cls:'conc-alarm', title:'🔴 Posible avería interna del transmisor', items:['Hay alimentación pero no hay salida de corriente — el transmisor puede estar averiado','Verificar LED de power/status del transmisor (si dispone)','Intentar resetear el transmisor (quitar y reponer alimentación 30 seg)','Conectar HART communicator — si no responde: avería interna confirmada','Reemplazar transmisor por equipo spare si es proceso crítico','Enviar al taller o fabricante para diagnóstico'] },
+      c_no_power: { type:'conc', cls:'conc-alarm', title:'⚡ Sin alimentación eléctrica', items:['Verificar tensión en bornes de alimentación del transmisor con multímetro','Remontar el circuito hacia el cuadro de campo: ¿hay tensión en el seccionador?','Comprobar fusibles o disyuntores del cuadro de alimentación de instrumentación','Verificar que el selector de campo/mantenimiento no está en posición OFF','Comprobar continuidad del cable de alimentación'] },
+      c_low_voltage: { type:'conc', cls:'conc-warn', title:'⚡ Tensión insuficiente en el lazo', items:['La tensión mínima necesaria en el transmisor es normalmente 10,5–12 VDC','Con 20 mA de salida y alta resistencia de carga la tensión puede caer demasiado','Calcular: V_tx = V_fuente − I × R_total (cables + barrera + borne DCS)','Reducir la resistencia de carga o aumentar la tensión de la fuente','Verificar que no hay fugas de corriente por humedad en cajas de bornes'] },
+      c_open_loop: { type:'conc', cls:'conc-warn', title:'🔌 Lazo abierto — verificar conexiones', items:['Medir resistencia entre los dos conductores del lazo (sin alimentación) → ∞ = abierto','Verificar todos los puntos de conexión: transmisor → caja de bornes → cable → DCS','Comprobar bornes de entrada AI en la tarjeta del DCS/PLC','Verificar barreras Zener o isoladores (si hay zona ATEX) — pueden estar averiados','Si hay separador galvánico: verificar que su salida tiene continuidad'] },
+      c_cable_damage: { type:'conc', cls:'conc-alarm', title:'🚨 Daño en cable de señal', items:['Inspección visual de todo el tendido de cable — buscar aplastamientos, cortes, corrosión','Medir resistencia de cada conductor → valores muy altos = rotura, cero = cortocircuito','Si el cable pasa por zonas con riesgo mecánico o químico, inspeccionar con especial atención','Reemplazar tramo dañado con cable apantallado par trenzado especificado','Verificar que el apantallado tiene conexión a tierra solo en un extremo (DCS side)'] },
+      c_faultcode_lo: { type:'conc', cls:'conc-warn', title:'⚠ Modo de fallo bajo activo (NAMUR NE43)', items:['Señal 1–3,5 mA = transmisor indica fallo bajo según NAMUR NE43','Anotar el código de fallo del display exactamente','Causas comunes: sensor roto, electrodo abierto (pH), rotura de membrana (presión diferencial)','Para caudalímetros EM: verificar coil excitation — F002 o F042 son frecuentes','El transmisor FUNCIONA pero detecta un fallo grave en el sensor o proceso'] },
+    }
+  },
+  drift: {
+    start: 'q1',
+    nodes: {
+      q1: { q:'¿La deriva es constante en una dirección o fluctúa?', opts:[
+        {text:'Deriva constante hacia arriba (valores cada vez mayores)', next:'q2'},
+        {text:'Deriva constante hacia abajo (valores cada vez menores)', next:'q3'},
+        {text:'Fluctuación lenta e irregular, no sistemática', next:'q4'},
+      ]},
+      q2: { q:'¿Hay correlación con alguna variable de proceso (temperatura, composición, caudal)?', opts:[
+        {text:'SÍ, la deriva aumenta con temperatura del proceso', next:'c_temp_comp'},
+        {text:'SÍ, cuando el proceso está más sucio/turbio', next:'c_fouling'},
+        {text:'NO, no hay correlación evidente', next:'c_sensor_aging'},
+      ]},
+      q3: { q:'¿Cuándo se realizó la última calibración del instrumento?', opts:[
+        {text:'Hace más de 6 meses / sin registro', next:'c_cal_due'},
+        {text:'Reciente (< 3 meses), todo era correcto', next:'c_new_drift'},
+        {text:'Nunca calibrado / instrumento nuevo', next:'c_initial_cal'},
+      ]},
+      q4: { q:'¿El ruido/fluctuación lenta aparece en momentos específicos?', opts:[
+        {text:'Durante cambios de turno o de condición de proceso', next:'c_process_real'},
+        {text:'Durante las horas de mayor actividad industrial cercana', next:'c_emi'},
+        {text:'Sin patrón aparente', next:'c_sensor_aging'},
+      ]},
+      c_temp_comp: { type:'conc', cls:'conc-warn', title:'🌡️ Compensación de temperatura incorrecta', items:['Muchos sensores (pH, conductividad, OD) requieren compensación de temperatura en tiempo real','Verificar que la sonda de temperatura de compensación funciona correctamente','Calibrar el sensor en las condiciones de temperatura reales del proceso','Para conductividad: verificar coeficiente de compensación de temperatura (típico 2%/°C para agua natural)','Documentar temperatura de proceso durante la verificación'] },
+      c_fouling: { type:'conc', cls:'conc-warn', title:'🧹 Ensuciamiento del sensor', items:['Retirar el sensor y limpiar la membrana/elemento sensible según procedimiento del fabricante','Para turbidímetro: limpiar ventanas ópticas con paño suave sin arañar','Para sonda pH: limpiar suavemente con agua destilada, o solución al 10% HCl si hay carbonatos','Para caudalímetro EM: inspeccionar interior del tubo — incrustaciones o depósitos en los electrodos','Implementar limpieza periódica según frecuencia recomendada para el tipo de agua'] },
+      c_sensor_aging: { type:'conc', cls:'conc-info', title:'📅 Envejecimiento del sensor', items:['El envejecimiento gradual es normal en sensores electroquímicos (pH, OD, cloro)','Calibrar con soluciones patrón de reciente fecha para cuantificar el error actual','Comparar la pendiente de calibración con la inicial — una pérdida >10% indica desgaste','Si la vida útil del sensor supera la especificada por el fabricante: reemplazar','Para sensores ópticos: verificar intensidad de fuente de luz / señal de referencia'] },
+      c_cal_due: { type:'conc', cls:'conc-warn', title:'📅 Calibración pendiente o vencida', items:['Realizar calibración completa (zero + span) con patrones trazables vigentes','Registrar valores antes y después de la calibración','Revisar la frecuencia de calibración del plan de mantenimiento — posiblemente hay que aumentarla','Si el error es > 5% FS, investigar causa adicional (proceso, sensor, instalación)','Actualizar el registro del GMAO y colocar etiqueta de calibración'] },
+      c_new_drift: { type:'conc', cls:'conc-alarm', title:'⚠ Deriva nueva en instrumento recientemente calibrado', items:['Algo ha cambiado en el proceso o la instalación desde la calibración','Verificar: ¿ha cambiado la composición del proceso? ¿Nuevos productos químicos de dosificación?','Verificar instalación: ¿hay vibraciones nuevas? ¿Cambio de temperatura ambiente?','Comprobar fuente de alimentación — una fuente degradada puede causar deriva','Registrar todas las lecturas horariamente durante 24h para caracterizar el patrón'] },
+      c_initial_cal: { type:'conc', cls:'conc-info', title:'📐 Calibración inicial necesaria', items:['Un instrumento nuevo o sin calibrar puede tener deriva de fábrica (offset)','Realizar calibración de dos puntos (zero y span) con patrones certificados','Registrar la fecha de puesta en servicio y establecer plan de calibración','Para instrumentos nuevos: realizar calibración inicial a las 24h de funcionamiento (run-in)','Documentar en el GMAO y en la hoja de vida del instrumento'] },
+      c_process_real: { type:'conc', cls:'conc-ok', title:'✔ Probable variación real del proceso', items:['Las variaciones durante cambios de turno pueden ser reales (ajustes de setpoint, cambios de carga)','Comparar con otros instrumentos del mismo proceso o tren paralelo','Verificar con el operador si los cambios observados coinciden con operaciones reales','Si otros instrumentos también varían: el proceso está cambiando — el instrumento es correcto','Documentar los eventos para futuro análisis de operación'] },
+      c_emi: { type:'conc', cls:'conc-warn', title:'📡 Posible interferencia electromagnética (EMI)', items:['Separar el cable de señal de cables de potencia y variadores de frecuencia','Verificar que el apantallado del cable está conectado a tierra solo en un extremo (típicamente DCS)','Añadir filtros RC o ferrita en la señal si es posible','Para caudalímetros EM: verificar puesta a tierra del transmisor y tubo de proceso','Instalar el cable en bandeja separada o tubo conduit metálico'] },
+    }
+  },
+  noise: {
+    start: 'q1',
+    nodes: {
+      q1: { q:'¿Con qué frecuencia oscila la señal ruidosa?', opts:[
+        {text:'Muy rápida (segundos o menos) — picos irregulares', next:'q2'},
+        {text:'Lenta (minutos) — ondulación suave', next:'q3'},
+        {text:'Sincronizada con algún equipo (bomba, agitador, VFD)', next:'c_equipment'},
+      ]},
+      q2: { q:'¿El ruido está presente cuando el sensor está fuera del proceso (en aire o agua limpia)?', opts:[
+        {text:'SÍ, sigue habiendo ruido sin sensor en proceso', next:'c_emi_wiring'},
+        {text:'NO, el ruido desaparece fuera del proceso', next:'c_process_noise'},
+      ]},
+      q3: { q:'¿El proceso puede estar realmente oscilando (control en oscilación, bomba ciclando)?', opts:[
+        {text:'SÍ, hay equipos de proceso que ciclan', next:'c_real_process'},
+        {text:'NO, el proceso debería ser estable', next:'c_sensor_fouling'},
+      ]},
+      c_emi_wiring: { type:'conc', cls:'conc-warn', title:'📡 Interferencia eléctrica en el lazo', items:['Verificar apantallado del cable de señal — debe estar conectado a tierra solo en el lado DCS','Separar el cable de señal de cables de fuerza, especialmente variadores de frecuencia','Verificar continuidad del blindaje a lo largo de todo el recorrido','Añadir filtrado en la entrada del DCS (filtro RC, tiempo de integración)','Verificar que no hay lazos de tierra (ground loops) — el apantallado no debe estar conectado en ambos extremos'] },
+      c_process_noise: { type:'conc', cls:'conc-info', title:'📊 Ruido de proceso real', items:['Las fluctuaciones pueden ser reales: turbulencia, burbujas, partículas','Para caudalímetros EM: verificar que el tubo está completamente lleno — burbujas causan ruido','Para turbidímetros: verificar ausencia de burbujas en el punto de medición','Aumentar el tiempo de amortiguamiento (damping) del transmisor si el proceso lo permite','Verificar si el punto de instalación es adecuado (no en curvas, no aguas abajo de válvulas)'] },
+      c_equipment: { type:'conc', cls:'conc-warn', title:'⚙ Ruido sincronizado con equipo — interferencia mecánica/eléctrica', items:['Identificar el equipo que genera el ruido (bomba, agitador, VFD, transformador)','Si es un VFD: aumentar frecuencia de conmutación del variador, o agregar filtro de salida','Verificar puesta a tierra del motor y variador según IEEE 519','Para vibraciones mecánicas: verificar que el transmisor no está expuesto a vibración excesiva','Añadir amortiguamiento en el transmisor (parámetro Damping / Time Constant)'] },
+      c_real_process: { type:'conc', cls:'conc-ok', title:'✔ Oscilación real del proceso', items:['Verificar con el operador si hay equipos ciclando (bombas on/off, válvulas de control inestables)','Comparar con otros instrumentos del mismo circuito — si todos oscilan, es el proceso','Si una válvula de control está en oscilación (hunting): ajustar PID o verificar actuador','Si hay bombas on/off: considerar aumentar el damping del transmisor','Documentar para análisis de proceso'] },
+      c_sensor_fouling: { type:'conc', cls:'conc-warn', title:'🧹 Posible ensuciamiento parcial del sensor', items:['Un sensor parcialmente ensuciado puede dar señal irregular — limpiar y verificar','Para sondas analíticas: limpiar y recalibrar, comparar antes y después','Para medidores de nivel por presión diferencial: verificar piernas de impulso no obstruidas','Verificar que el sensor no está en zona de burbujeo, olas o espuma','Revisar punto de instalación en P&ID para posible reubicación'] },
+    }
+  },
+  overrange: {
+    start: 'q1',
+    nodes: {
+      q1: { q:'¿El valor de proceso puede realmente haber superado el URV configurado?', opts:[
+        {text:'SÍ, el proceso puede estar en condición extrema', next:'c_real_over'},
+        {text:'NO, el proceso no puede superar ese límite', next:'q2'},
+      ]},
+      q2: { q:'¿El overrange empezó de forma gradual o repentina?', opts:[
+        {text:'Repentinamente (en segundos/minutos)', next:'q3'},
+        {text:'Gradualmente (horas/días)', next:'c_drift_up'},
+      ]},
+      q3: { q:'¿Hubo algún evento en la planta antes del overrange?', opts:[
+        {text:'Golpe de ariete, sobrepresión momentánea', next:'c_waterhammer'},
+        {text:'Producto químico diferente, cambio de proceso', next:'c_process_change'},
+        {text:'Sin evento conocido', next:'c_sensor_failure'},
+      ]},
+      c_real_over: { type:'conc', cls:'conc-warn', title:'⚠ Verificar condición de proceso real', items:['Verificar con operador el estado real del proceso en ese punto','Comparar con instrumentos redundantes o portátiles','Si el proceso está realmente en overrange: normal que el transmisor sature a 20,5 mA','Evaluar si es necesario ampliar el rango del transmisor (cambiar URV)','Documentar para análisis de riesgo del proceso'] },
+      c_drift_up: { type:'conc', cls:'conc-warn', title:'📈 Deriva ascendente hasta overrange', items:['Consultar el árbol de Deriva para diagnóstico completo','Causas habituales: ensuciamiento del sensor, envejecimiento del electrodo, proceso cambiante','Limpiar y recalibrar el instrumento con patrones trazables','Verificar que LRV/URV son correctos y no han sido modificados accidentalmente'] },
+      c_waterhammer: { type:'conc', cls:'conc-alarm', title:'💥 Posible daño por golpe de ariete', items:['Los golpes de ariete pueden dañar membranas de sensores de presión diferencial','Desconectar el transmisor del proceso con seguridad y verificar integridad del sensor','Verificar el valor de presión máxima permitida (MWP) del instrumento vs. el pico ocurrido','Si hay daño: reemplazar el elemento de medición','Instalar atenuadores de golpe de ariete si el problema es recurrente'] },
+      c_process_change: { type:'conc', cls:'conc-info', title:'🔄 Cambio en condición de proceso', items:['El cambio de producto o condición puede haber llevado el proceso fuera del rango previsto','Verificar si el nuevo rango de proceso está cubierto por el URV actual','Si no: ajustar URV o reemplazar por instrumento de mayor rango','Para sensores analíticos: verificar compatibilidad química del sensor con el nuevo proceso','Recalibrar en las nuevas condiciones de proceso'] },
+      c_sensor_failure: { type:'conc', cls:'conc-alarm', title:'🔴 Posible fallo del sensor', items:['Sin causa aparente de proceso: posible fallo interno del sensor primario','Verificar el display del transmisor — códigos F (Failure) confirman fallo','Reemplazar el sensor primario (o el transmisor completo si es integral)','Antes de reemplazar: medir la señal directamente en los bornes del transmisor para confirmar','Enviar equipo averiado a servicio técnico para análisis de fallo'] },
+    }
+  },
+  ph_error: {
+    start: 'q1',
+    nodes: {
+      q1: { q:'¿Cómo se manifiesta el problema de la sonda pH?', opts:[
+        {text:'El pH indica un valor muy alto o muy bajo sin justificación de proceso', next:'q2'},
+        {text:'La respuesta es muy lenta — tarda mucho en estabilizarse', next:'q3'},
+        {text:'La señal oscila / inestable a pesar de proceso estable', next:'q4'},
+        {text:'El instrumento muestra error o alarma de sonda', next:'c_faultcode_ph'},
+      ]},
+      q2: { q:'¿Cuándo se realizó la última calibración?', opts:[
+        {text:'Calibración reciente (< 1 semana)', next:'c_check_process'},
+        {text:'Sin calibración en más de 1 mes', next:'c_recal'},
+        {text:'Nunca calibrado / sonda nueva sin calibrar', next:'c_initial_ph'},
+      ]},
+      q3: { q:'¿La sonda está limpia visualmente?', opts:[
+        {text:'SÍ, sonda limpia y sin depósitos visibles', next:'c_aging'},
+        {text:'NO, hay depósitos, incrustaciones o biofilm', next:'c_clean_ph'},
+      ]},
+      q4: { q:'¿Hay tierras deficientes o interferencias en el entorno?', opts:[
+        {text:'Zona industrial con equipos eléctricos cercanos', next:'c_ground_ph'},
+        {text:'Instalación estándar, sin interferencias aparentes', next:'c_electrode_damage'},
+      ]},
+      c_check_process: { type:'conc', cls:'conc-info', title:'🔍 Verificar condición del proceso', items:['Con calibración reciente, verificar si el proceso realmente tiene ese pH extremo','Tomar muestra manual y medir con pH-metro portátil calibrado','Si el portátil confirma el valor: el instrumento es correcto, hay evento de proceso','Si el portátil da un valor diferente: problema en la sonda/transmisor instalado','Verificar la referencia de potencial (el electrodo de referencia puede estar contaminado)'] },
+      c_recal: { type:'conc', cls:'conc-warn', title:'📅 Calibración necesaria', items:['Retirar la sonda, limpiar con agua destilada y calibrar con buffers pH 4, 7 y 10','Usar la calculadora de pendiente de este módulo para verificar el estado del electrodo','Registrar la pendiente y comparar con valores anteriores — tendencia descendente = envejecimiento','Si la pendiente < 90%: el electrodo está degradado y debe reemplazarse','Establecer plan de calibración: mínimo mensual para EDAR, quincenal en procesos críticos'] },
+      c_initial_ph: { type:'conc', cls:'conc-info', title:'📐 Calibración inicial de sonda', items:['Una sonda sin calibrar usa la calibración de fábrica, que puede tener offset significativo','Realizar calibración de 2 puntos: buffer pH 7 (cero) y buffer pH 4 o 10 (span)','Para Memosens (E+H, M4000): calibrar en campo con soluciones tampón o en laboratorio','Verificar el punto isopotencial del electrodo (habitualmente pH 7)','Documentar la calibración inicial en el historial del instrumento'] },
+      c_aging: { type:'conc', cls:'conc-warn', title:'⏳ Envejecimiento del electrodo de pH', items:['Un electrodo de pH tiene vida útil típica de 6–18 meses en agua residual','Verificar pendiente: < 95% indica desgaste; < 90% requiere reemplazo','Verificar la unión de referencia (junction) — puede estar obstruida por sulfuros o KCl precipitado','Para rejuvenecer temporalmente: sumergir en solución HCl 0,1M durante 30 min, luego en KCl 3M','Si el electrodo tiene > 1 año en servicio en EDAR: considerar reemplazo preventivo'] },
+      c_clean_ph: { type:'conc', cls:'conc-warn', title:'🧹 Limpieza urgente del electrodo', items:['Para depósitos calcáreos: limpiar con solución diluida de HCl (10%) durante 1–5 min','Para biofilm/materia orgánica: limpiar con solución enzimática o hipoclorito 1%','NUNCA frotar la membrana de vidrio con objetos abrasivos','Enjuagar abundantemente con agua destilada tras cualquier limpieza química','Recalibrar inmediatamente tras la limpieza y verificar pendiente del electrodo'] },
+      c_ground_ph: { type:'conc', cls:'conc-warn', title:'⚡ Problema de tierra / interferencia eléctrica en pH', items:['El pH es especialmente sensible a los potenciales parásitos de tierra','Verificar que el electrodo de referencia tiene contacto adecuado con el proceso','Usar electrodo con doble unión de referencia en ambientes con interferencias','Verificar que el proceso no está electrolizado (corrientes de fuga de bombas, electrólisis)','Para electrodo Memosens: el cable digital es mucho más resistente a interferencias — considerar upgrade','Instalar electrodo de tierra de proceso si es posible'] },
+      c_electrode_damage: { type:'conc', cls:'conc-alarm', title:'🔴 Posible daño en el electrodo', items:['Verificar integridad visual del bulbo de vidrio — cualquier microfisura invalida la medición','Comprobar la impedancia del electrodo con el transmisor (Liquiline, M400): > 2000 MΩ = fisura','Si la impedancia es nominal pero la señal es errática: unión de referencia taponada','Reemplazar el electrodo — guardar el dañado para análisis post-mortem','Revisar las condiciones de proceso: overpressure, abrasión, productos incompatibles con vidrio'] },
+      c_faultcode_ph: { type:'conc', cls:'conc-info', title:'🛑 Código de error de sonda — acción según fabricante', items:['Anotar el código exacto (ej. E+H: Sensor broken, Ref junction blocked, slope < 85%)','Para E+H Liquiline CM44x: el sistema diagnostica automáticamente el electrodo Memosens','Códigos de diagnóstico F (Failure) = acción inmediata requerida','Para Hach sc: verificar cable de sensor y conector — limpiar si hay corrosión en pines','Documento más útil: Manual de campo y lista de diagnóstico del transmisor específico'] },
+    }
+  }
+};
+
+let currentTree = null;
+let treeBreadcrumb = [];
+let treeNodeHistory = [];
+
+function startTree(treeId) {
+  currentTree = trees[treeId];
+  treeBreadcrumb = [];
+  treeNodeHistory = [];
+  // Show the tree tab
+  const tab = document.getElementById('tr-active-tab');
+  tab.style.display = 'flex';
+  tab.classList.add('active');
+  document.querySelectorAll('#p-troubl .mod-tab').forEach(b=>b.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelectorAll('#p-troubl .mod-tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tr-active').classList.add('active');
+  renderNode(currentTree.start);
+}
+
+function troublTab(id, btn) {
+  document.querySelectorAll('#p-troubl .mod-tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('#p-troubl .mod-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function renderNode(nodeId) {
+  const node = currentTree.nodes[nodeId];
+  if (!node) return;
+  treeNodeHistory.push(nodeId);
+
+  const container = document.getElementById('tree-container');
+  const breadEl = document.getElementById('tree-breadcrumb');
+  breadEl.textContent = treeBreadcrumb.length > 0 ? '→ ' + treeBreadcrumb.join(' → ') : 'Inicio del diagnóstico';
+
+  if (node.type === 'conc') {
+    container.innerHTML = `
+      <div class="tree-conclusion ${node.cls}">
+        <h3>${node.title}</h3>
+        <ul>${node.items.map(i=>`<li>${i}</li>`).join('')}</ul>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="goBack()">← Atrás</button>
+        <button class="btn btn-outline btn-sm" onclick="resetTree()">↺ Nuevo diagnóstico</button>
+      </div>`;
+  } else {
+    container.innerHTML = `
+      <div class="tree-node">
+        <div class="tree-question">${node.q}</div>
+        <div class="tree-opts">
+          ${node.opts.map((o,i)=>`<button class="tree-opt" onclick="selectOption('${nodeId}',${i})">${o.text}</button>`).join('')}
+        </div>
+      </div>
+      ${treeNodeHistory.length > 1 ? `<button class="btn btn-outline btn-sm" onclick="goBack()">← Atrás</button>` : ''}`;
+  }
+}
+
+function selectOption(nodeId, optIdx) {
+  const node = currentTree.nodes[nodeId];
+  const opt = node.opts[optIdx];
+  treeBreadcrumb.push(opt.text.substring(0,40)+(opt.text.length>40?'…':''));
+  renderNode(opt.next);
+}
+
+function goBack() {
+  if (treeNodeHistory.length > 1) {
+    treeNodeHistory.pop();
+    treeBreadcrumb.pop();
+    renderNode(treeNodeHistory[treeNodeHistory.length-1]);
+    treeNodeHistory.pop(); // renderNode will re-push
+  }
+}
+
+function resetTree() {
+  document.querySelectorAll('#p-troubl .mod-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#p-troubl .mod-tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tr-select').classList.add('active');
+  document.querySelector('#p-troubl .mod-tab').classList.add('active');
+  document.getElementById('tr-active-tab').style.display='none';
+  currentTree=null; treeBreadcrumb=[]; treeNodeHistory=[];
+}
+
+// ═══════════════════════════════════════════════
+// PARAMS REFERENCE
+// ═══════════════════════════════════════════════
+const paramsData = [
+  { sector:'edar', title:'Caudal de diseño EDAR', rows:[
+    ['Caudal medio diseño','Según hab-equivalentes: ~200–250 L/(hab·día)','EDAR'],
+    ['Caudal punta (Qp)','2–4 × Qmedio','EDAR'],
+    ['Señal 4–20 mA típica','0–2×Qmedio → Qpunta como URV','EDAR'],
+  ]},
+  { sector:'edar', title:'Parámetros físico-químicos — Influente EDAR', rows:[
+    ['DBO₅ influente','150–300 mg/L','Agua residual urbana'],
+    ['DQO influente','300–600 mg/L','Ratio DQO/DBO₅ ≈ 2'],
+    ['Sólidos en suspensión','200–400 mg/L','—'],
+    ['Nitrógeno total (NTK)','40–60 mg N/L','—'],
+    ['Fósforo total','4–10 mg P/L','—'],
+    ['pH influente','6,5–8,0','—'],
+    ['Temperatura','10–25°C','—'],
+  ]},
+  { sector:'edar', title:'Control de proceso — Reactor biológico', rows:[
+    ['Oxígeno disuelto (aerobio)','2,0–4,0 mg/L','≥ 1,5 nitrificación'],
+    ['OD zona anóxica','< 0,5 mg/L','Desnitrificación'],
+    ['pH reactor aerobio','6,8–7,5','óptimo biológico'],
+    ['Temperatura reactor','15–35°C','óptimo nitrificación > 15°C'],
+    ['MLSS (lodos mixtos)','2.500–4.000 mg/L','Lodos activos convencional'],
+    ['Conductividad retorno','500–2.000 µS/cm','—'],
+  ]},
+  { sector:'edar', title:'Efluente — Límites de vertido (Dir. 91/271/CEE)', rows:[
+    ['DBO₅','≤ 25 mg/L','RD 509/1996'],
+    ['DQO','≤ 125 mg/L','RD 509/1996'],
+    ['SS (sólidos suspensión)','≤ 35 mg/L','RD 509/1996'],
+    ['N total (> 100.000 he)','≤ 10 mg N/L','RD 509/1996'],
+    ['P total (> 100.000 he)','≤ 1 mg P/L','RD 509/1996'],
+    ['pH vertido','6 – 9','—'],
+    ['Temperatura','< 3°C sobre T° cauce','Dir.91/271'],
+  ]},
+  { sector:'etap', title:'Agua bruta — Rango típico para ETAP', rows:[
+    ['Turbidez agua bruta','1 – 500 NTU','Variable según estación'],
+    ['pH agua bruta','6,5 – 8,5','—'],
+    ['Conductividad','200 – 1.000 µS/cm','—'],
+    ['Temperatura','5 – 25°C','—'],
+    ['Color','5 – 50 mg Pt/Co','—'],
+    ['Alcalinidad','100–300 mg CaCO₃/L','—'],
+    ['Dureza total','100–400 mg CaCO₃/L','—'],
+  ]},
+  { sector:'etap', title:'Agua tratada — Límites RD 3/2023', rows:[
+    ['Turbidez (salida ETAP)','≤ 1 UNF','RD 3/2023'],
+    ['Turbidez (red distribución)','≤ 4 UNF','RD 3/2023'],
+    ['pH','6,5 – 9,5','RD 3/2023'],
+    ['Conductividad','≤ 2.500 µS/cm','RD 3/2023 (20°C)'],
+    ['Cloro libre residual','0,2 – 1,0 mg/L','RD 3/2023'],
+    ['Amonio (NH₄⁺)','≤ 0,5 mg/L','RD 3/2023'],
+    ['Nitratos (NO₃⁻)','≤ 50 mg/L','RD 3/2023'],
+    ['Color','≤ 15 mg/L Pt/Co','RD 3/2023'],
+    ['Temperatura','≤ 25°C','RD 3/2023'],
+  ]},
+  { sector:'etap', title:'Puntos de control clave en ETAP', rows:[
+    ['Coagulación — dosis aluminio','1–50 mg/L Al₂(SO₄)₃','Jar test'],
+    ['pH coagulación óptima','6,5 – 7,5','—'],
+    ['Floculación — tiempo','20–40 min','Velocidad: 10–75 rpm'],
+    ['Decantación — velocidad','< 2 m/h','—'],
+    ['Filtración — velocidad','2–10 m/h (rápida)','—'],
+    ['Desinfección Cl₂ — CT','≥ 0,5 mg·min/L','Inactivación Giardia'],
+  ]},
+  { sector:'ind', title:'Agua de proceso industrial — Parámetros generales', rows:[
+    ['Agua de refrigeración','Conductividad < 3.000 µS/cm','Langelier Index: -0,5 a +0,5'],
+    ['Agua de caldera (baja P < 10 bar)','Conductividad < 2.000 µS/cm · pH 10–11','ABMA estándar'],
+    ['Agua caldera media P (10–60 bar)','Conductividad < 500 µS/cm · pH 9,5–10,5','—'],
+    ['Agua caldera alta P (> 60 bar)','Conductividad < 100 µS/cm · pH 9–10','—'],
+    ['Agua osmótica / EDI','Conductividad < 5 µS/cm','TOC < 0,5 mg/L'],
+    ['Agua desmineralizada','Conductividad < 0,1 µS/cm','Resistividad > 1 MΩ·cm'],
+  ]},
+  { sector:'ind', title:'Señales típicas — Instrumentación industrial', rows:[
+    ['Transmisor de pH — rango estándar','0–14 pH / 4–20 mA','—'],
+    ['Transmisor de conductividad','0–2.000 µS/cm / 4–20 mA','O 0–20 mS/cm'],
+    ['Transmisor de OD','0–20 mg/L / 4–20 mA','O 0–200% saturación'],
+    ['Transmisor de cloro libre','0–2 mg/L / 4–20 mA','O 0–10 mg/L'],
+    ['Transmisor de presión diferencial','0–500 mbar DP / 4–20 mA','Filtros, membranas'],
+    ['Señal fallo bajo (NAMUR NE43)','< 3,8 mA','Cable roto'],
+    ['Señal fallo alto (NAMUR NE43)','> 20,5 mA','Cortocircuito sensor'],
+  ]},
+];
+
+function renderParams(filter) {
+  const container = document.getElementById('params-container');
+  const filtered = filter==='all' ? paramsData : paramsData.filter(p=>p.sector===filter);
+  container.innerHTML = filtered.map(group => `
+    <div class="card">
+      <div class="card-title" style="color:${group.sector==='edar'?'var(--c-ph)':group.sector==='etap'?'var(--c-flow)':'var(--c-cond)'}">
+        ${group.sector==='edar'?'🟢 EDAR':group.sector==='etap'?'🔵 ETAP':'🟡 INDUSTRIAL'} · ${group.title}
+      </div>
+      <table class="norm-table">
+        <tr><th>Parámetro</th><th>Valor / Rango</th><th>Referencia</th></tr>
+        ${group.rows.map(([p,v,r])=>`<tr><td>${p}</td><td class="hl">${v}</td><td><span class="ntag ntag-${group.sector}">${r}</span></td></tr>`).join('')}
+      </table>
+    </div>`).join('');
+}
+renderParams('all');
+
+function filterParams(filter, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderParams(filter);
+}
+</script>
+
+</body>
+</html>
